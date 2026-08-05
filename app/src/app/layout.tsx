@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import "./globals.css";
+
+const themeBootstrapScript = `
+  (function () {
+    try {
+      var match = document.cookie.match(/(?:^|; )cwa-theme=([^;]+)/);
+      var saved = match ? decodeURIComponent(match[1]) : null;
+      var theme = saved === "dark" || saved === "light" ? saved : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+    } catch (error) {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  })();
+`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,12 +33,16 @@ export const metadata: Metadata = {
     "Frontend builder for phoneme-based Wordle and Word Search classroom activities.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
+      data-theme="light"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
       <body className="min-h-full app-shell">
         <header className="site-header">
           <div className="shell-inner">

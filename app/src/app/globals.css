@@ -1,13 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f2f3ef;
-  --surface: #fffffd;
-  --foreground: #1f2a2e;
-  --muted: #5e6a70;
-  --border: #cfd6d8;
-  --accent: #0e6f66;
-  --accent-strong: #095850;
+  --background: #eef5ff;
+  --surface: #ffffff;
+  --foreground: #182737;
+  --muted: #4a6379;
+  --border: #c2d7ee;
+  --accent: #2f7edb;
+  --accent-strong: #195ea8;
+  --ring: #9dc4ec;
+  --shadow: 0 10px 30px rgb(18 56 102 / 0.12);
+  --hero-a: #d2e6ff;
+  --hero-b: #e8fff7;
+}
+
+html[data-theme="dark"] {
+  --background: #0f1c2c;
+  --surface: #16263a;
+  --foreground: #e8f1ff;
+  --muted: #b8cde5;
+  --border: #2e4562;
+  --accent: #64adff;
+  --accent-strong: #90c4ff;
+  --ring: #31557d;
+  --shadow: 0 12px 36px rgb(0 0 0 / 0.34);
+  --hero-a: #1b314d;
+  --hero-b: #153948;
 }
 
 @theme inline {
@@ -20,8 +38,8 @@
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 10% 0%, #dbe8de 0%, transparent 28%),
-    radial-gradient(circle at 90% 0%, #e6efe2 0%, transparent 24%),
+    radial-gradient(circle at 10% 0%, var(--hero-a) 0%, transparent 32%),
+    radial-gradient(circle at 90% 0%, var(--hero-b) 0%, transparent 30%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
@@ -45,7 +63,7 @@ a {
 
 .site-header {
   border-bottom: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 95%, white 5%);
+  background: color-mix(in oklab, var(--surface) 96%, var(--hero-a) 4%);
   backdrop-filter: blur(8px);
 }
 
@@ -81,13 +99,15 @@ a {
   padding: 0.45rem 0.9rem;
   font-weight: 600;
   color: var(--accent-strong);
-  background: #fff;
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  transition: border-color 120ms ease, color 120ms ease, transform 120ms ease;
 }
 
 .desktop-nav a:hover,
 .mobile-menu-panel a:hover {
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .mobile-menu {
@@ -102,7 +122,7 @@ a {
   border-radius: 999px;
   padding: 0.4rem 0.9rem;
   font-weight: 600;
-  background: #fff;
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
 }
 
 .mobile-menu-panel {
@@ -122,7 +142,7 @@ a {
   border-radius: 16px;
   background: var(--surface);
   padding: 1.25rem;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.06);
+  box-shadow: var(--shadow);
 }
 
 .panel h2,
@@ -151,16 +171,19 @@ a {
   padding: 0.8rem 0.9rem;
   font-weight: 600;
   color: var(--accent-strong);
-  background: #fff;
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  transition: border-color 120ms ease, color 120ms ease, transform 120ms ease;
 }
 
 .quick-links a:hover {
   border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .site-footer {
   border-top: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 97%, white 3%);
+  background: color-mix(in oklab, var(--surface) 96%, var(--hero-b) 4%);
 }
 
 .footer-row {
@@ -170,6 +193,62 @@ a {
   padding: 0.9rem 0 1rem;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.theme-option-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.theme-card {
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  border-radius: 14px;
+  padding: 0.85rem;
+}
+
+.theme-card button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  border-radius: 12px;
+  padding: 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.theme-card button:hover {
+  border-color: var(--accent);
+}
+
+.theme-card button.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 45%, transparent 55%);
+}
+
+.swatches {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.swatch {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgb(0 0 0 / 0.18);
+}
+
+.settings-note {
+  color: var(--muted);
+  margin: 0;
 }
 
 @media (min-width: 800px) {
@@ -189,5 +268,13 @@ a {
   .footer-row {
     flex-direction: row;
     justify-content: space-between;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+
+  .theme-option-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
