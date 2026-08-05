@@ -28,7 +28,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CSE3CWA Assessment 1 - Phoneme Activity Builder",
+  title: "PhonoTrail Studio - Classroom Activity Builder",
   description:
     "Frontend builder for phoneme-based Wordle and Word Search classroom activities.",
 };
@@ -46,8 +46,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-full app-shell">
         <header className="site-header">
           <div className="shell-inner">
-            <p className="eyebrow">2026-CSE3CWA-(OL-2)</p>
-            <h1 className="site-title">Assessment 1: Frontend Design and Usability</h1>
+            <p className="eyebrow">Speech Pathology Teacher Toolkit</p>
+            <h1 className="site-title">PhonoTrail Studio</h1>
+            <p className="assessment-badge">Built for CSE3CWA Assessment 1</p>
             <nav className="desktop-nav" aria-label="Main navigation">
               <Link href="/">Home</Link>
               <Link href="/about">About</Link>

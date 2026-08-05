@@ -1,31 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef5ff;
-  --surface: #ffffff;
-  --foreground: #182737;
-  --muted: #4a6379;
-  --border: #c2d7ee;
-  --accent: #2f7edb;
-  --accent-strong: #195ea8;
-  --ring: #9dc4ec;
-  --shadow: 0 10px 30px rgb(18 56 102 / 0.12);
-  --hero-a: #d2e6ff;
-  --hero-b: #e8fff7;
+  --background: #10263f;
+  --surface: #163657;
+  --surface-soft: #1c4268;
+  --foreground: #f4f8ff;
+  --muted: #c5d8f0;
+  --border: #2d5b85;
+  --accent: #d4a65b;
+  --accent-strong: #e2b974;
+  --ring: #8cb4da;
+  --shadow: 0 14px 36px rgb(4 12 26 / 0.44);
+  --hero-a: #0e3258;
+  --hero-b: #173857;
 }
 
 html[data-theme="dark"] {
-  --background: #0f1c2c;
-  --surface: #16263a;
-  --foreground: #e8f1ff;
-  --muted: #b8cde5;
-  --border: #2e4562;
-  --accent: #64adff;
-  --accent-strong: #90c4ff;
-  --ring: #31557d;
-  --shadow: 0 12px 36px rgb(0 0 0 / 0.34);
-  --hero-a: #1b314d;
-  --hero-b: #153948;
+  --background: #081528;
+  --surface: #112742;
+  --surface-soft: #163252;
+  --foreground: #f1f5ff;
+  --muted: #b7cae8;
+  --border: #274a73;
+  --accent: #c9994a;
+  --accent-strong: #ddb271;
+  --ring: #5b84af;
+  --shadow: 0 14px 38px rgb(0 0 0 / 0.55);
+  --hero-a: #0a2441;
+  --hero-b: #102844;
 }
 
 @theme inline {
@@ -38,8 +40,9 @@ html[data-theme="dark"] {
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 10% 0%, var(--hero-a) 0%, transparent 32%),
-    radial-gradient(circle at 90% 0%, var(--hero-b) 0%, transparent 30%),
+    radial-gradient(circle at 8% 0%, color-mix(in oklab, var(--accent) 18%, transparent 82%) 0%, transparent 36%),
+    radial-gradient(circle at 88% 0%, color-mix(in oklab, #6fb0ff 22%, transparent 78%) 0%, transparent 32%),
+    linear-gradient(180deg, var(--hero-a) 0%, var(--hero-b) 35%, var(--background) 100%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
@@ -63,7 +66,7 @@ a {
 
 .site-header {
   border-bottom: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 96%, var(--hero-a) 4%);
+  background: color-mix(in oklab, var(--surface) 94%, #0a1626 6%);
   backdrop-filter: blur(8px);
 }
 
@@ -86,6 +89,17 @@ a {
   line-height: 1.2;
 }
 
+.assessment-badge {
+  margin: 0 0 0.95rem;
+  width: fit-content;
+  border: 1px solid color-mix(in oklab, var(--accent) 55%, var(--border) 45%);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--accent-strong);
+  background: color-mix(in oklab, var(--surface) 76%, black 24%);
+}
+
 .desktop-nav {
   display: none;
   gap: 0.8rem;
@@ -99,14 +113,14 @@ a {
   padding: 0.45rem 0.9rem;
   font-weight: 600;
   color: var(--accent-strong);
-  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  background: color-mix(in oklab, var(--surface-soft) 84%, black 16%);
   transition: border-color 120ms ease, color 120ms ease, transform 120ms ease;
 }
 
 .desktop-nav a:hover,
 .mobile-menu-panel a:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-strong);
   transform: translateY(-1px);
 }
 
@@ -122,7 +136,8 @@ a {
   border-radius: 999px;
   padding: 0.4rem 0.9rem;
   font-weight: 600;
-  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  color: var(--accent-strong);
+  background: color-mix(in oklab, var(--surface-soft) 84%, black 16%);
 }
 
 .mobile-menu-panel {
@@ -140,7 +155,7 @@ a {
 .panel {
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: var(--surface);
+  background: color-mix(in oklab, var(--surface) 88%, black 12%);
   padding: 1.25rem;
   box-shadow: var(--shadow);
 }
@@ -148,6 +163,7 @@ a {
 .panel h2,
 .panel h3 {
   margin-top: 0;
+  color: var(--accent-strong);
 }
 
 .intro-panel p {
@@ -171,19 +187,19 @@ a {
   padding: 0.8rem 0.9rem;
   font-weight: 600;
   color: var(--accent-strong);
-  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  background: color-mix(in oklab, var(--surface-soft) 82%, black 18%);
   transition: border-color 120ms ease, color 120ms ease, transform 120ms ease;
 }
 
 .quick-links a:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-strong);
   transform: translateY(-1px);
 }
 
 .site-footer {
   border-top: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 96%, var(--hero-b) 4%);
+  background: color-mix(in oklab, var(--surface) 90%, #0a1524 10%);
 }
 
 .footer-row {
@@ -207,7 +223,7 @@ a {
 
 .theme-card {
   border: 1px solid var(--border);
-  background: color-mix(in oklab, var(--surface) 92%, white 8%);
+  background: color-mix(in oklab, var(--surface-soft) 84%, black 16%);
   border-radius: 14px;
   padding: 0.85rem;
 }
