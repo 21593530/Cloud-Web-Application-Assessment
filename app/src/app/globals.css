@@ -35,6 +35,7 @@ html[data-theme="dark"] {
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 }
 
 body {
@@ -87,6 +88,8 @@ a {
   margin: 0.35rem 0 0.85rem;
   font-size: clamp(1.2rem, 2.2vw, 1.8rem);
   line-height: 1.2;
+  font-family: var(--font-display), var(--font-geist-sans), "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
 }
 
 .assessment-badge {
@@ -164,6 +167,8 @@ a {
 .panel h3 {
   margin-top: 0;
   color: var(--accent-strong);
+  font-family: var(--font-display), var(--font-geist-sans), "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
 }
 
 .intro-panel p {
