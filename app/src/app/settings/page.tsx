@@ -47,7 +47,7 @@ export default function SettingsPage() {
         <h2 id="settings-heading">Theme and Preferences</h2>
         <p>
           Choose a theme that fits your classroom context. Your selection is
-          saved and automatically reused the next time you open this app.
+          saved to a cookie and automatically reused the next time you open this app.
         </p>
 
         <div className="theme-option-grid" role="radiogroup" aria-label="Theme choice">
@@ -60,11 +60,11 @@ export default function SettingsPage() {
               aria-checked={theme === "light"}
             >
               <strong>Light Theme</strong>
-              <p className="settings-note">Bright, soft, and classroom-friendly.</p>
+              <p className="settings-note">Crisp white with deep navy text and gold highlights.</p>
               <div className="swatches" aria-hidden="true">
-                <span className="swatch" style={{ background: "#eef5ff" }} />
-                <span className="swatch" style={{ background: "#2f7edb" }} />
-                <span className="swatch" style={{ background: "#e8fff7" }} />
+                <span className="swatch swatch--light" />
+                <span className="swatch swatch--dark" />
+                <span className="swatch swatch--accent" />
               </div>
             </button>
           </div>
@@ -78,11 +78,11 @@ export default function SettingsPage() {
               aria-checked={theme === "dark"}
             >
               <strong>Dark Theme</strong>
-              <p className="settings-note">Focused contrast for longer sessions.</p>
+              <p className="settings-note">Deep navy backdrop with gold highlights for longer sessions.</p>
               <div className="swatches" aria-hidden="true">
-                <span className="swatch" style={{ background: "#0f1c2c" }} />
-                <span className="swatch" style={{ background: "#64adff" }} />
-                <span className="swatch" style={{ background: "#153948" }} />
+                <span className="swatch swatch--light" />
+                <span className="swatch swatch--dark" />
+                <span className="swatch swatch--accent" />
               </div>
             </button>
           </div>

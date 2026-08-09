@@ -1,19 +1,38 @@
 # Cloud Web Application Assessment
 
-This repository contains materials and implementation work for CSE3CWA Assessment 1 (Frontend design and usability).
+This repository contains the full handover package for CSE3CWA Assessment 1: Frontend Design and Usability.
 
-## Repository Structure
+## What is included
 
-- `course-materials/` - assessment brief, rubric, phoneme corpus, and reference screenshot.
-- `prototypes/` - standalone prototype files used for reference.
-- `app/` - Next.js frontend implementation (to be created with `npx create-next-app .` inside this folder).
+- Course materials and the assessment brief in the course-materials folder.
+- A prototype reference file in the prototypes folder.
+- A polished Next.js frontend in the app folder with:
+  - a home page and about page
+  - teacher-facing Word Search and Wordle activities
+  - a settings page with persistent light/dark theme support
+  - standalone HTML export for each activity
 
-## Next Step
+## Project structure
 
-1. Create the app folder:
-   - `mkdir app`
-   - `cd app`
-2. Scaffold the required frontend:
-   - `npx create-next-app .`
+- course-materials/ — assessment brief, rubric, corpus, and reference materials
+- prototypes/ — earlier standalone prototype work
+- app/ — complete frontend implementation and local documentation
 
-This approach keeps source materials separate from production app code while still preserving all assessment evidence in one repo.
+## Run locally
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000.
+
+## Build check
+
+```bash
+cd app
+npm run build
+```
+
+This project is designed to be submission-ready, with the app code separated from the assessment evidence while remaining easy to review.
