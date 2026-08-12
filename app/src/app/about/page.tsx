@@ -33,11 +33,17 @@ export default function AboutPage() {
 
       <h3>Video Walkthrough</h3>
       <p>
-        A short video walkthrough of the site will be embedded here as part of the final submission.
+        A short video walkthrough of the site is embedded here as part of the final submission.
       </p>
-      <div className="feature-card video-placeholder" style={{ marginTop: "0.5rem" }}>
-        <h3>Video placeholder</h3>
-        <p>Submission video will be attached here prior to the due date.</p>
+      <div className="feature-card" style={{ marginTop: "0.5rem" }}>
+        <video
+          controls
+          preload="metadata"
+          style={{ width: "100%", borderRadius: "12px", background: "#000" }}
+        >
+          <source src="/phonotrailaboutvideo.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </div>
 
       <h3>Submission Note</h3>

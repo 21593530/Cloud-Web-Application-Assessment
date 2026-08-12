@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
 
@@ -11,14 +11,21 @@ function readThemeFromCookie(): ThemeMode {
     return "light";
   }
 
-  const match = document.cookie.match(/(?:^|; )cwa-theme=([^;]+)/);
-  const saved = match ? decodeURIComponent(match[1]) : null;
+  const match = document.cookie
+    .split(";")
+    .map((entry) => entry.trim())
+    .find((entry) => entry.startsWith(`${THEME_COOKIE}=`));
+  const saved = match ? decodeURIComponent(match.split("=")[1]) : null;
   return saved === "dark" ? "dark" : "light";
 }
 
 function applyTheme(theme: ThemeMode) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
   document.documentElement.setAttribute("data-theme", theme);
-  document.cookie = `${THEME_COOKIE}=${theme}; path=/; max-age=31536000; samesite=lax`;
+  document.cookie = `${THEME_COOKIE}=${theme}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
 export default function SettingsPage() {
@@ -34,6 +41,12 @@ export default function SettingsPage() {
 
     return readThemeFromCookie();
   });
+
+  useEffect(() => {
+    const nextTheme = readThemeFromCookie();
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  }, []);
 
   const selectTheme = (nextTheme: ThemeMode) => {
     setTheme(nextTheme);

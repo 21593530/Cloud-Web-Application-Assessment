@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import { Baloo_2, Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
@@ -39,11 +40,15 @@ export const metadata: Metadata = {
     "Frontend builder for phoneme-based Wordle and Word Search classroom activities.",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const cookieStore = await cookies();
+  const savedTheme = cookieStore.get("cwa-theme")?.value;
+  const initialTheme = savedTheme === "dark" ? "dark" : "light";
+
   return (
     <html
       lang="en"
-      data-theme="light"
+      data-theme={initialTheme}
       className={`${geistSans.variable} ${geistMono.variable} ${baloo.variable} h-full antialiased`}
     >
       <head>

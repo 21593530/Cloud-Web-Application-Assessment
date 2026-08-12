@@ -118,7 +118,7 @@ function buildExportHtml(target: string, english: string, clue: string, maxGuess
   const kbdSections = PHONEME_KEYBOARD.map((section) => {
     const keys = section.keys.map((sym) => {
       const hint = getPhonemeHint(sym).replace(/"/g, "&quot;");
-      return `<button class="phoneme-key" type="button" data-sym="${sym}" title="${hint}" aria-label="${sym} â€” ${hint}">${sym}</button>`;
+      return `<button class="phoneme-key" type="button" data-sym="${sym}" title="${hint}" aria-label="${sym} — ${hint}">${sym}</button>`;
     }).join("");
     return `<div class="phoneme-section"><span class="section-label">${section.label}</span><div class="phoneme-row">${keys}</div></div>`;
   }).join("");
@@ -128,7 +128,7 @@ function buildExportHtml(target: string, english: string, clue: string, maxGuess
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PhonoTrail Studio â€” Wordle</title>
+    <title>PhonoTrail Studio — Wordle</title>
     <style>
       :root { --bg: #f8fafc; --surface: #fff; --border: #e2e8f0; --text: #0f172a; --muted: #64748b; --accent: #eab308; --accent-str: #ca8a04; --success: #15803d; --neutral: #94a3b8; --navy: #0f172a; }
       *, *::before, *::after { box-sizing: border-box; }
@@ -399,7 +399,7 @@ export default function WordlePage() {
 
     if (result.every((s) => s === "correct")) {
       setGameState("won");
-      setFeedback(`Correct! ${targetTokens.join(" ")} â€” ${englishWord}.`);
+      setFeedback(`Correct! ${targetTokens.join(" ")} — ${englishWord}.`);
       return;
     }
 
@@ -443,7 +443,7 @@ export default function WordlePage() {
               <div className="phoneme-word-display" aria-live="polite">
                 {parseTargetTokens(targetWord).length > 0
                   ? parseTargetTokens(targetWord).map((tok, i) => (
-                      <span key={i} className="phoneme-token-chip" title={getPhonemeHint(tok)} aria-label={`${tok} â€” ${getPhonemeHint(tok)}`}>{tok}</span>
+                      <span key={i} className="phoneme-token-chip" title={getPhonemeHint(tok)} aria-label={`${tok} — ${getPhonemeHint(tok)}`}>{tok}</span>
                     ))
                   : <span className="phoneme-token-placeholder">Click keys below to add phonemes</span>
                 }
@@ -454,7 +454,7 @@ export default function WordlePage() {
                     <p className="phoneme-section-label">{section.label}</p>
                     <div className="phoneme-row">
                       {section.keys.map((sym) => (
-                        <button key={sym} type="button" className="phoneme-key" title={getPhonemeHint(sym)} aria-label={`${sym} â€” ${getPhonemeHint(sym)}`} onClick={() => appendTokenToTarget(sym)}>{sym}</button>
+                        <button key={sym} type="button" className="phoneme-key" title={getPhonemeHint(sym)} aria-label={`${sym} — ${getPhonemeHint(sym)}`} onClick={() => appendTokenToTarget(sym)}>{sym}</button>
                       ))}
                     </div>
                   </div>
@@ -522,7 +522,7 @@ export default function WordlePage() {
                         hint = token ? getPhonemeHint(token) : "";
                       }
                       return (
-                        <div key={`${rowIndex}-${colIndex}`} className={`wordle-tile ${state}`} title={hint || undefined} aria-label={hint ? `${token} â€” ${hint}` : undefined}>
+                        <div key={`${rowIndex}-${colIndex}`} className={`wordle-tile ${state}`} title={hint || undefined} aria-label={hint ? `${token} — ${hint}` : undefined}>
                           {token}
                         </div>
                       );
@@ -539,7 +539,7 @@ export default function WordlePage() {
               <strong>Teacher support</strong>
               <p>{clue}</p>
               <p className="top-gap" style={{ fontSize: "0.85rem" }}>
-                {targetLength} phoneme{targetLength !== 1 ? "s" : ""} Â· {maxGuesses} guesses Â· {DIFFICULTY_OPTIONS[difficulty].label}
+                {targetLength} phoneme{targetLength !== 1 ? "s" : ""} · {maxGuesses} guesses · {DIFFICULTY_OPTIONS[difficulty].label}
               </p>
             </div>
             <div className="wordle-preview">
@@ -556,7 +556,7 @@ export default function WordlePage() {
             {gameState === "won" && (
               <div className="wordle-preview" style={{ borderColor: "var(--success-color)" }}>
                 <strong style={{ color: "var(--success-color)" }}>Solved</strong>
-                <p>{targetWord} â€” <strong>{englishWord}</strong></p>
+                <p>{targetWord} — <strong>{englishWord}</strong></p>
               </div>
             )}
             <div className="button-row">
@@ -580,7 +580,7 @@ export default function WordlePage() {
                       type="button"
                       className={`phoneme-key phoneme-key--game${ks !== "unknown" ? ` phoneme-key--${ks}` : ""}`}
                       title={getPhonemeHint(sym)}
-                      aria-label={`${sym} â€” ${getPhonemeHint(sym)}`}
+                      aria-label={`${sym} — ${getPhonemeHint(sym)}`}
                       onClick={() => appendToken(sym)}
                       disabled={!isActive}
                     >
