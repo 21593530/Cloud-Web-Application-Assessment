@@ -107,11 +107,14 @@ This order keeps the current Assessment 1 preview usable throughout the migratio
 ## Phase 6: Improve Assessment 1 Weaknesses
 *   **Word Search Accessibility:** Add keyboard-focusable cells, Enter/Space selection, visible focus styles, accessible status messages, and keyboard-accessible clear/check controls.
 *   **Modularity:** Extract shared domain types, API client helpers, validation schemas, database repository functions, export builders, phoneme hint utilities, and saved-activity controls.
+*   **Home Page UI refresh:** Rework the Home page so it feels like a deliberate teacher workspace rather than a basic collection of panels. Improve hierarchy, spacing, first-viewport usefulness, activity entry points, visual balance, and responsive behaviour while preserving the existing brand and navigation.
 *   **Theme Preferences (Low Priority):** Only after core work is complete, consider adding a System theme option or reduced motion preference. Do not let this delay core requirements.
 
 ### Phase 6 integration timing
 
 The Word Search keyboard work should happen after the activity data shape is stable but before the final frontend-backend checkpoint. That ensures keyboard selection is tested against stored multi-character phoneme data, not only the old hard-coded example. Modularity should begin before API routes become large: extract shared types, repositories, validation, and export builders early, then split page UI as the integration surfaces become clear.
+
+The Home page refresh should happen after the saved-activity API is available, so its primary actions can point to real workflows such as creating a new activity, opening a saved activity, and continuing recent work. Keep this as a focused UI improvement rather than a separate product redesign. Verify it at desktop and mobile widths, and preserve clear keyboard focus and accessible link/button labels.
 
 ## Phase 7: Dockerization
 
