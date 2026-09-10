@@ -78,9 +78,10 @@ function activityData(input: ActivityCreateInput) {
   };
 }
 
-export async function listActivities() {
+export async function listActivities(type?: string) {
   const activities = await prisma.activity.findMany({
     include: activityInclude,
+    ...(type ? { where: { type } } : {}),
     orderBy: { updatedAt: "desc" },
   });
   return activities.map(serializeActivity);

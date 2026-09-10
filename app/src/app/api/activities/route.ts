@@ -5,9 +5,10 @@ import { activityCreateSchema } from "@/lib/validation/activity";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    return jsonSuccess(await listActivities());
+    const type = new URL(request.url).searchParams.get("type") ?? undefined;
+    return jsonSuccess(await listActivities(type));
   } catch (error) {
     console.error("Failed to list activities", error);
     return jsonError("DATABASE_ERROR", "Activities could not be loaded.", 500);

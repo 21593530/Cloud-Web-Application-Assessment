@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createActivity, fetchActivities, removeActivity, updateActivity } from "@/lib/api/activities";
+import type { ActivityRecord } from "@/lib/domain/activity";
 
 type PuzzleWord = {
   id: string;
@@ -428,6 +430,9 @@ export default function WordSearchPage() {
   const [selectedCells, setSelectedCells] = useState<string[]>([]);
   const [feedback, setFeedback] = useState("Generate a puzzle to start.");
   const [showAnswers, setShowAnswers] = useState(false);
+  const [savedActivities, setSavedActivities] = useState<ActivityRecord[]>([]);
+  const [selectedActivityId, setSelectedActivityId] = useState("");
+  const [storageStatus, setStorageStatus] = useState("Loading saved Word Search activities...");
 
   const initialPuzzle = useMemo(() => {
     const parsed = parseWords(defaultWordInput);
@@ -436,6 +441,24 @@ export default function WordSearchPage() {
 
   const activeBoard = board.length ? board : initialPuzzle.board;
   const activeWords = words.length ? words : initialPuzzle.words;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchActivities("WORD_SEARCH")
+      .then((activities) => {
+        if (cancelled) return;
+        const wordSearchActivities = activities.filter((activity) => activity.type === "WORD_SEARCH");
+        setSavedActivities(wordSearchActivities);
+        setStorageStatus(`${wordSearchActivities.length} saved Word Search activit${wordSearchActivities.length === 1 ? "y" : "ies"}.`);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setStorageStatus(error instanceof Error ? error.message : "Saved activities could not be loaded.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleGenerate = () => {
     const parsed = parseWords(wordInput);
@@ -449,6 +472,78 @@ export default function WordSearchPage() {
     setWords(result.words);
     setSelectedCells([]);
     setFeedback("Puzzle ready. Click cells to trace a word.");
+  };
+
+  const loadSavedActivity = (id: string) => {
+    const activity = savedActivities.find((item) => item.id === id);
+    if (!activity) return;
+    const loadedWords = activity.words
+      .sort((first, second) => first.position - second.position)
+      .map((word) => ({
+        id: word.id,
+        tokens: word.phonemes.sort((first, second) => first.position - second.position).map((phoneme) => phoneme.symbol),
+        display: word.displayWord,
+        found: false,
+        solution: [],
+      }));
+    const settings = activity.settings;
+    const nextRows = settings.rows ?? 8;
+    const nextCols = settings.cols ?? 8;
+    const result = buildPuzzle(loadedWords, nextRows, nextCols);
+    setSelectedActivityId(id);
+    setWordInput(loadedWords.map((word) => word.tokens.join(" ")).join("\n"));
+    setRows(nextRows);
+    setCols(nextCols);
+    setBoard(result.board);
+    setWords(result.words);
+    setSelectedCells([]);
+    setFeedback(`Loaded ${activity.title}.`);
+    setStorageStatus(`Loaded ${activity.title}.`);
+  };
+
+  const saveActivity = async () => {
+    const parsed = parseWords(wordInput);
+    if (parsed.length < 2) {
+      setStorageStatus("Add at least two words before saving a Word Search activity.");
+      return;
+    }
+
+    const payload = {
+      type: "WORD_SEARCH" as const,
+      title: "Phoneme Word Search",
+      clue: "Find each phoneme-based word in the grid.",
+      difficulty: "EASY" as const,
+      settings: { rows, cols },
+      words: parsed.map((word, position) => ({
+        displayWord: word.display,
+        englishWord: null,
+        position,
+        phonemes: word.tokens,
+      })),
+    };
+
+    try {
+      const saved = selectedActivityId
+        ? await updateActivity(selectedActivityId, payload)
+        : await createActivity(payload);
+      setSelectedActivityId(saved.id);
+      setSavedActivities((current) => [saved, ...current.filter((activity) => activity.id !== saved.id)]);
+      setStorageStatus(`Saved ${saved.title}.`);
+    } catch (error: unknown) {
+      setStorageStatus(error instanceof Error ? error.message : "Activity could not be saved.");
+    }
+  };
+
+  const deleteSavedActivity = async () => {
+    if (!selectedActivityId) return;
+    try {
+      await removeActivity(selectedActivityId);
+      setSavedActivities((current) => current.filter((activity) => activity.id !== selectedActivityId));
+      setSelectedActivityId("");
+      setStorageStatus("Saved activity deleted.");
+    } catch (error: unknown) {
+      setStorageStatus(error instanceof Error ? error.message : "Activity could not be deleted.");
+    }
   };
 
   const handleCellClick = (row: number, col: number) => {
@@ -512,6 +607,23 @@ export default function WordSearchPage() {
           Enter a short list of phoneme-based words, choose the grid size, and
           generate a preview that teachers can use as a classroom-ready worksheet.
         </p>
+
+        <div className="saved-activity-controls" aria-label="Saved Word Search activities">
+          <label className="field-stack">
+            <span>Saved activity</span>
+            <select value={selectedActivityId} onChange={(event) => loadSavedActivity(event.target.value)}>
+              <option value="">Current unsaved activity</option>
+              {savedActivities.map((activity) => (
+                <option key={activity.id} value={activity.id}>{activity.title}</option>
+              ))}
+            </select>
+          </label>
+          <div className="button-row">
+            <button type="button" className="generate-button" onClick={saveActivity}>Save Activity</button>
+            <button type="button" className="secondary-button" onClick={deleteSavedActivity} disabled={!selectedActivityId}>Delete Saved Activity</button>
+            <span className="status-pill" aria-live="polite">{storageStatus}</span>
+          </div>
+        </div>
 
         <div className="word-search-controls">
           <label className="field-stack">

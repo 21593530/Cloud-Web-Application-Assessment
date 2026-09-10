@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createActivity, fetchActivities, updateActivity } from "@/lib/api/activities";
+import type { ActivityRecord } from "@/lib/domain/activity";
 
 type KeyState = "correct" | "present" | "absent" | "unknown";
 
@@ -322,11 +324,32 @@ export default function WordlePage() {
   const [feedback, setFeedback] = useState("Click phoneme keys to begin your first guess.");
   const [gameState, setGameState] = useState<"playing" | "won" | "lost">("playing");
   const [showAnswer, setShowAnswer] = useState(false);
+  const [savedActivities, setSavedActivities] = useState<ActivityRecord[]>([]);
+  const [selectedActivityId, setSelectedActivityId] = useState("");
+  const [storageStatus, setStorageStatus] = useState("Loading saved Wordle activities...");
 
   const targetTokens = parseTargetTokens(targetWord);
   const targetLength = targetTokens.length;
   const maxGuesses = DIFFICULTY_OPTIONS[difficulty].guesses;
   const isActive = gameState === "playing";
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchActivities("WORDLE")
+      .then((activities) => {
+        if (cancelled) return;
+        const wordleActivities = activities.filter((activity) => activity.type === "WORDLE");
+        setSavedActivities(wordleActivities);
+        setStorageStatus(`${wordleActivities.length} saved Wordle activit${wordleActivities.length === 1 ? "y" : "ies"}.`);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setStorageStatus(error instanceof Error ? error.message : "Saved activities could not be loaded.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const resetGameState = () => {
     setGuesses([]);
@@ -345,6 +368,42 @@ export default function WordlePage() {
   const handleDifficultyChange = (index: number) => {
     setDifficulty(index);
     resetGameState();
+  };
+
+  const loadSavedActivity = (id: string) => {
+    const activity = savedActivities.find((item) => item.id === id);
+    if (!activity || !activity.words[0]) return;
+    const word = activity.words[0];
+    const difficultyIndex = DIFFICULTY_OPTIONS.findIndex((option) => option.guesses === activity.settings.maxGuesses);
+    setSelectedActivityId(id);
+    setTargetWord(word.phonemes.map((phoneme) => phoneme.symbol).join(" "));
+    setEnglishWord(word.englishWord ?? "");
+    setClue(activity.clue ?? "");
+    setDifficulty(difficultyIndex >= 0 ? difficultyIndex : 1);
+    resetGameState();
+    setStorageStatus(`Loaded ${activity.title}.`);
+  };
+
+  const saveActivity = async () => {
+    const payload = {
+      type: "WORDLE" as const,
+      title: englishWord ? `${englishWord} phoneme Wordle` : "Phoneme Wordle",
+      clue,
+      difficulty: DIFFICULTY_OPTIONS[difficulty].label.toUpperCase() as "EASY" | "NORMAL" | "HARD",
+      settings: { maxGuesses },
+      words: [{ displayWord: targetWord, englishWord, position: 0, phonemes: targetTokens }],
+    };
+
+    try {
+      const saved = selectedActivityId
+        ? await updateActivity(selectedActivityId, payload)
+        : await createActivity(payload);
+      setSelectedActivityId(saved.id);
+      setSavedActivities((current) => [saved, ...current.filter((activity) => activity.id !== saved.id)]);
+      setStorageStatus(`Saved ${saved.title}.`);
+    } catch (error: unknown) {
+      setStorageStatus(error instanceof Error ? error.message : "Activity could not be saved.");
+    }
   };
 
   const appendTokenToTarget = (sym: string) => {
@@ -435,6 +494,22 @@ export default function WordlePage() {
           Enter the target word as space-separated HCE phoneme tokens - e.g.{" "}
           <strong>ʃ ɪ p</strong> for &ldquo;ship&rdquo;. Use the keyboard below to compose it.
         </p>
+
+        <div className="saved-activity-controls" aria-label="Saved Wordle activities">
+          <label className="field-stack">
+            <span>Saved activity</span>
+            <select value={selectedActivityId} onChange={(event) => loadSavedActivity(event.target.value)}>
+              <option value="">Current unsaved activity</option>
+              {savedActivities.map((activity) => (
+                <option key={activity.id} value={activity.id}>{activity.title}</option>
+              ))}
+            </select>
+          </label>
+          <div className="button-row">
+            <button type="button" className="generate-button" onClick={saveActivity}>Save Activity</button>
+            <span className="status-pill" aria-live="polite">{storageStatus}</span>
+          </div>
+        </div>
 
         <div className="wordle-layout">
           <div className="wordle-stack">

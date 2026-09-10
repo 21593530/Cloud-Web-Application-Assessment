@@ -205,6 +205,10 @@ Keep this section updated as implementation phases are completed. It is intended
 - Phase 4 API routes implemented for `/api/health` and activity list/create/read/update/delete operations.
 - Real HTTP smoke test verified health `200`, seeded activity retrieval, nested create/read/update, delete `204`, invalid payload `400`, invalid ID `400`, and missing valid ID `404`.
 - Node UTF-8 response check confirmed API phoneme symbols such as `tʃ` and `ɪ` survive the database-to-JSON response intact.
+- Phase 5 integration started and completed for both builders: Wordle and Word Search load saved activities from the API and can save/update stored activity data.
+- Word Search also supports deleting a selected saved activity, while both builders show loading/save/error status messages.
+- Saved Word Search records regenerate the local board from stored ordered phoneme tokens and grid settings; the standalone export workflow remains available.
+- Phase 5 TypeScript and production build checks passed after fixing the persisted word-position mapping.
 
 ### Video evidence still required
 - [ ] Show the schema and explain why phonemes are ordered string records rather than characters.

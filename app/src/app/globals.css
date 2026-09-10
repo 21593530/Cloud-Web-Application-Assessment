@@ -360,6 +360,16 @@ a {
   margin-top: 1rem;
 }
 
+.saved-activity-controls {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--surface-alt);
+}
+
 .word-search-page .panel {
   background: var(--surface-color);
 }
@@ -380,7 +390,8 @@ a {
 
 textarea,
 input[type="number"],
-input[type="text"] {
+input[type="text"],
+select {
   width: 100%;
   border: 1px solid var(--border-color);
   border-radius: 12px;
