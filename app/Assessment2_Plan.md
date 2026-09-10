@@ -3,6 +3,18 @@
 ## Goal
 Extend PhonoTrail Studio from a frontend-only Assessment 1 app into a Dockerised, database-backed full-stack application while preserving the existing interface and standalone Wordle/Word Search exports.
 
+## Course-material alignment check
+
+The plan has been checked against both files in `course-materials/assessment2`:
+- `2026-CSE3CWA-(OL-2)_ Assessment 2_ Details and instructions _ My LMS subjects.pdf`
+- `Assessment 2 Marking criteria and rubric CSE3CWA (1).docx`
+
+The following are mandatory and are represented in the plan: continuation from the Next.js starter project, backend/server-side logic, database schema and ORM, multi-character phoneme storage, multiple activity configurations, CRUD operations, validation and error handling, downloadable Wordle and Word Search outputs from stored data, Docker execution, `/health` returning 200 OK, video evidence of CRUD/frontend/backend/Docker behaviour, code upload, GitHub link, removal of `node_modules` from the zip, AI acknowledgement, and at least five APA 7th-style sources.
+
+The following are implementation choices rather than explicit mandated technologies: SQLite, Prisma, Zod, same-origin Next.js route handlers, named Docker volumes, a three-table relational shape, Postman/Thunder Client, and the exact endpoint paths. They are retained because they fit the existing app and rubric, but the final submission should explain them as justified design decisions.
+
+The Assessment 2 documents require a video walkthrough but do not state a 6-8 minute duration in the extracted brief or rubric. The 6-8 minute target below is retained as practical guidance from the Assessment 1 feedback; confirm any final time limit in the LMS before recording.
+
 ## Recommended Architecture
 *   **Frontend/Backend:** Next.js App Router
 *   **API:** Next.js route handlers under `src/app/api`
@@ -147,7 +159,7 @@ Update the `README.md` with:
 *   Verification steps & known design decisions.
 *   *Commit Strategy:* Use focused commits (e.g., "Add Prisma database schema", "Integrate saved activities into Wordle").
 
-## Phase 9: Video Plan (6–8 Minutes)
+## Phase 9: Video Plan (target 6–8 minutes; confirm the Assessment 2 LMS limit)
 *   **0:00–0:30:** Face, narration, student ID, project introduction.
 *   **0:30–1:15:** Explain backend architecture and Prisma database schema.
 *   **1:15–2:00:** Show Docker container running successfully.
@@ -156,7 +168,7 @@ Update the `README.md` with:
 *   **4:00–5:15:** Show backend data successfully driving the Wordle activity.
 *   **5:15–6:30:** Show backend data driving the Word Search activity.
 *   **6:30–7:15:** Show validation/error handling and keyboard accessibility.
-*   **7:15–8:00:** Summarise technical decisions and display APA 7 references.
+*   **7:15–8:00:** Summarise technical decisions and mention the supporting APA 7 sources and AI acknowledgement requirements.
 
 ---
 
@@ -174,6 +186,33 @@ Update the `README.md` with:
 - [ ] `node_modules` is excluded from the final `.zip` file.
 - [ ] Video evidence meets all rubric criteria (under 8 minutes).
 - [ ] AI acknowledgement and APA 7th ed. references are included.
+
+## Video progress log
+
+Keep this section updated as implementation phases are completed. It is intended to become the evidence outline for the final 6-8 minute walkthrough.
+
+### Completed so far
+- Phase 1 foundation started: Prisma CLI/client and Zod installed; database scripts added; `.env.example` added; real environment files remain ignored.
+- Prisma versions aligned to stable `6.16.3` for both `prisma` and `@prisma/client` after correcting an initial CLI/client mismatch and avoiding the newer config/adapter workflow before it is needed.
+- Phase 2 schema created with `Activity`, `Word`, and `Phoneme` models.
+- Multi-character phonemes are stored as complete strings with explicit ordering, including seed examples such as `tʃ`, `dʒ`, `ʉː`, and `iː`.
+- Seed script created for one Wordle activity and one Word Search activity.
+- Initial SQLite migration applied successfully and Prisma schema validation passed.
+- Seed rerun was verified as non-destructive when activities already exist.
+- Frontend production build still passes after adding the database layer.
+- Phase 3 validation contract created with shared activity types, Zod schemas, and consistent API response helpers.
+- Validation smoke check verified a valid multi-character Wordle payload is accepted while invalid Wordle and blank-phoneme payloads are rejected.
+- Phase 4 API routes implemented for `/api/health` and activity list/create/read/update/delete operations.
+- Real HTTP smoke test verified health `200`, seeded activity retrieval, nested create/read/update, delete `204`, invalid payload `400`, invalid ID `400`, and missing valid ID `404`.
+- Node UTF-8 response check confirmed API phoneme symbols such as `tʃ` and `ɪ` survive the database-to-JSON response intact.
+
+### Video evidence still required
+- [ ] Show the schema and explain why phonemes are ordered string records rather than characters.
+- [ ] Show migration and seed execution.
+- [ ] Show real CRUD requests and responses.
+- [ ] Show frontend data loading from the database.
+- [ ] Show Wordle and Word Search generation from saved records.
+- [ ] Show validation/error handling, Docker, `/health`, keyboard accessibility, and final exports.
 
 ## Phase-by-phase feasibility conclusion
 
