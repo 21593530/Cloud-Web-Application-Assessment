@@ -233,3 +233,41 @@ The highest-risk areas are:
 - Avoiding another large page-file implementation by extracting pure logic and reusable UI as each phase is built.
 
 The safest working rule is: finish and verify one phase before making the next phase depend on it. Each checkpoint should use real data and executable checks, while the frontend keeps a visible loading, empty, and error state so partial backend progress remains usable.
+
+## Assessment 1 feedback closure: negative points addressed in Assessment 2
+
+The Assessment 1 feedback identified several valid weaknesses. These are explicitly addressed in the Assessment 2 plan and implementation sequence to avoid repeating the same issues in the final submission.
+
+### 1) Theme preferences were too limited
+The original implementation satisfied the core light/dark requirement but was weaker than stronger cohort examples because it lacked a System/Browser theme option and did not use a shared theme provider pattern. Phase 6 explicitly treats theme preferences as a low-priority enhancement rather than a blocking requirement. The final implementation keeps the persisted theme flow, but the plan does not allow theme polish to delay the database/API/core submission work. If a System theme or additional accessibility preference is added, it is treated as a bonus improvement rather than a prerequisite.
+
+### 2) Word Search keyboard accessibility was incomplete
+The feedback correctly noted that the original Word Search relied too heavily on pointer-based selection rather than fully accessible keyboard interaction. This is directly targeted in Phase 6: keyboard-focusable cells, Enter/Space activation, visible focus styles, `aria-pressed`, row/column labels, accessible status messaging, and keyboard-friendly clear/check controls are all explicitly required. This is not an optional polish item; it is a stated requirement before final validation.
+
+### 3) Code modularity was weaker than claimed
+The earlier app was too monolithic, especially in the large Wordle and Word Search page files. Phase 6 specifically addresses this through modularisation: shared domain types, validation schemas, API client logic, database repository functions, export builders, phoneme hint utilities, and saved-activity controls are separated from page-level UI logic. The code structure is intentionally designed so the app is easier to maintain, test, and explain in the final video and written justification.
+
+### 4) Presentation and final evidence need to be tighter
+The earlier assessment video was substantially too long and the presentation was broader than it needed to be. Phase 9 reduces this to a controlled 6-8 minute evidence plan with explicit timeboxes, and the final walkthrough focuses on database schema, CRUD, `/health`, frontend loading from saved records, Wordle/Word Search generation, validation, keyboard accessibility, and Docker behaviour. This is a measured, rubric-aligned evidence structure rather than a general product demo.
+
+### 5) Final submission quality and documented rationale
+The assessment plan now includes a stronger final documentation and GitHub handover pathway: `README.md` updates, transparent design decisions, commit strategy, and a final submission checklist. The project is no longer framed as a simple visual build; it is positioned as a full-stack assessment with clear technical choices, validation evidence, and accessible teacher flows.
+
+In short, the negative points from Assessment 1 are no longer just acknowledged—they are directly converted into concrete Phase 6, Phase 7, and Phase 9 requirements, with explicit verification checkpoints and final evidence expectations.
+
+## Assessment 1 Feedback
+
+### Frontend structure, pages and overall interface design
+All required pages are implemented as proper Next.js App Router routes: Home, About, Wordle, Word Search and Settings. The application has a consistent global header/footer, full desktop navigation and an appropriate hamburger menu on smaller screens. The About page includes student details and the required locally embedded walkthrough video (phonotrailaboutvideo.mp4). Both activities follow a clear builder → live preview → export workflow, and the interface is cohesive and professional.
+
+### Themes and persistent preferences Maximum score
+Light and Dark themes are implemented and correctly persisted for one year using cookies. The root layout reads the cookie server-side, allowing the saved theme to be applied immediately rather than only after client hydration. However, there is no System/Browser theme option, no additional persistent layout/accessibility preference, and no shared ThemeContext/provider. This is a solid implementation of the basic requirement but less complete than the stronger preference systems in the cohort.
+
+### Wordle and Word Search activity behaviour and HTML output generation Maximum score
+Both activities genuinely satisfy the teacher-builder requirement. Wordle allows the teacher to construct an arbitrary phoneme target using the phoneme keyboard, enter the English equivalent and clue, and configure Easy/Normal/Hard difficulty through the number of guesses. The preview implements proper duplicate-aware correct/present/absent scoring and English-equivalence completion feedback. Word Search allows teachers to edit the phoneme word list directly, add/remove content and configure rows/columns from 6–12. Puzzle generation supports horizontal, vertical and diagonal directions including reverse placement. Both exports are self-contained HTML with embedded CSS, JavaScript and activity data, and the student demonstrates the downloaded versions operating independently.
+
+### Usability, accessibility and responsive design Maximum score
+Good usability work is evident: responsive navigation, labelled form controls, phoneme-to-English mouse-over hints, descriptive ARIA labels, semantic buttons, visible hover/focus states and mobile-responsive builder layouts. The teacher preview closely represents the exported student activity, which supports a predictable workflow. However, Word Search remains substantially based on pointer/cell selection rather than demonstrating the same level of complete keyboard accessibility as the strongest submissions. The presentation also discusses accessibility more generally than technically, so I would stop short of 3.5–4.
+
+### Code quality, modularity, GitHub and written justification Maximum score
+The project is correctly based on Next.js/create-next-app and has a customised README, assessment notes and GitHub repository link. The 11:11 presentation gives meaningful justification of the educator-facing layout, teacher workflow, phoneme hints, standalone HTML trade-off, cookie choice and responsive design. In particular, the student explicitly identifies the trade-off of duplicated inline CSS/JavaScript increasing exported file size in exchange for a genuinely portable single HTML file. The video also shows GitHub commits and discusses iterative development. Code modularity is also weaker than the student suggests: beyond SiteHeader and SectionCard, the Wordle and Word Search pages are very large files containing builder UI, preview gameplay, puzzle logic and complete standalone HTML templates. The presentation is also substantially over the required 6–8 minutes.
