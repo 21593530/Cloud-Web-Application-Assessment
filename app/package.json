@@ -11,7 +11,8 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "node prisma/seed.mjs",
     "db:studio": "prisma studio",
-    "validate:contract": "tsx scripts/validate-contract.ts"
+    "validate:contract": "tsx scripts/validate-contract.ts",
+    "validate:phonemes": "tsx scripts/validate-phoneme-matching.ts"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"

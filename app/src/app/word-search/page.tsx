@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { createActivity, fetchActivities, removeActivity, updateActivity } from "@/lib/api/activities";
 import type { ActivityRecord } from "@/lib/domain/activity";
+import { tokensMatchInEitherDirection } from "@/lib/domain/phoneme";
 
 type PuzzleWord = {
   id: string;
@@ -169,7 +170,7 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
   const boardMarkup = board
     .flatMap((row, rowIndex) =>
       row.map((cell, colIndex) =>
-        `<button class="cell" type="button" data-row="${rowIndex}" data-col="${colIndex}" data-hint="${getPhonemeHint(cell)}" title="${getPhonemeHint(cell)}" aria-label="${cell} — ${getPhonemeHint(cell)}">${cell}</button>`
+        `<button class="cell" type="button" data-row="${rowIndex}" data-col="${colIndex}" data-hint="${getPhonemeHint(cell)}" title="${getPhonemeHint(cell)}" aria-label="Row ${rowIndex + 1}, column ${colIndex + 1}: ${cell}. ${getPhonemeHint(cell)}" aria-pressed="false">${cell}</button>`
       )
     )
     .join("");
@@ -284,7 +285,7 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
             <button class="action" type="button" id="checkButton">Check Selection</button>
             <button class="secondary" type="button" id="clearButton">Clear Selection</button>
           </div>
-          <div class="status" id="status">Select a path to begin.</div>
+          <div class="status" id="status" role="status" aria-live="polite">Select a path to begin.</div>
         </div>
         <div class="panel">
           <h2>Find These Words</h2>
@@ -320,12 +321,12 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
         });
       }
 
-      function getSelectionLetters() {
-        return state.selected.map((cell) => puzzleData.board[cell.row][cell.col].symbol).join('');
+      function tokensMatch(first, second) {
+        return first.length === second.length && first.every(function(token, index) { return token === second[index]; });
       }
 
-      function getSelectionReverse() {
-        return getSelectionLetters().split('').reverse().join('');
+      function tokensMatchInEitherDirection(first, second) {
+        return tokensMatch(first, second) || tokensMatch(first, second.slice().reverse());
       }
 
       function render() {
@@ -334,6 +335,7 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
           const col = Number(button.dataset.col);
           const key = row + '-' + col;
           button.classList.toggle('selected', state.selected.some((cell) => cell.row === row && cell.col === col));
+          button.setAttribute('aria-pressed', state.selected.some((cell) => cell.row === row && cell.col === col) ? 'true' : 'false');
           button.classList.toggle('found', state.foundCells.has(key));
         });
 
@@ -360,9 +362,8 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
           return;
         }
 
-        const letters = getSelectionLetters();
-        const reverseLetters = getSelectionReverse();
-        const match = puzzleData.words.find((word) => !state.foundWords.has(word.id) && (word.tokens.join('') === letters || word.tokens.join('') === reverseLetters));
+        const selectedTokens = state.selected.map((cell) => puzzleData.board[cell.row][cell.col].symbol);
+        const match = puzzleData.words.find((word) => !state.foundWords.has(word.id) && tokensMatchInEitherDirection(selectedTokens, word.tokens));
 
         if (match) {
           const path = match.solution && match.solution.length ? match.solution : state.selected;
@@ -377,9 +378,7 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
         render();
       }
 
-      boardEl.addEventListener('click', (event) => {
-        const button = event.target.closest('.cell');
-        if (!button) return;
+      function toggleCell(button) {
         const row = Number(button.dataset.row);
         const col = Number(button.dataset.col);
         const key = row + '-' + col;
@@ -390,6 +389,12 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
         }
         render();
         statusEl.textContent = state.selected.length ? 'Selection updated. Check your path when ready.' : 'Select a path to begin.';
+      }
+
+      boardEl.addEventListener('click', (event) => {
+        const button = event.target.closest('.cell');
+        if (!button) return;
+        toggleCell(button);
       });
 
       document.addEventListener('mousemove', (event) => {
@@ -562,17 +567,17 @@ export default function WordSearchPage() {
       return;
     }
 
-    const selectedLetters = selectedCells
+    const selectedTokens = selectedCells
       .map((key) => {
         const [row, col] = key.split("-").map(Number);
         return activeBoard[row][col];
       })
-      .join("");
+      ;
 
     const match = activeWords.find(
       (word) =>
         !word.found &&
-        (word.tokens.join("") === selectedLetters || word.tokens.join("") === selectedLetters.split("").reverse().join(""))
+        tokensMatchInEitherDirection(selectedTokens, word.tokens)
     );
 
     if (match) {
@@ -583,6 +588,12 @@ export default function WordSearchPage() {
     }
 
     setSelectedCells([]);
+  };
+
+  const handleCellKeyDown = (event: KeyboardEvent<HTMLButtonElement>, row: number, col: number) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    handleCellClick(row, col);
   };
 
   const exportHtml = () => {
@@ -654,7 +665,7 @@ export default function WordSearchPage() {
             </button>
           </div>
 
-          <p className="status-pill">{feedback}</p>
+          <p className="status-pill" aria-live="polite">{feedback}</p>
         </div>
       </article>
 
@@ -687,8 +698,11 @@ export default function WordSearchPage() {
                       key={key}
                       type="button"
                       title={getPhonemeHint(cell)}
+                      aria-label={`Row ${rowIndex + 1}, column ${colIndex + 1}: ${cell}. ${getPhonemeHint(cell)}`}
+                      aria-pressed={isSelected}
                       className={`word-cell ${isSelected ? "selected" : ""} ${isFound ? "found" : ""} ${isRevealed ? "revealed" : ""}`}
                       onClick={() => handleCellClick(rowIndex, colIndex)}
+                      onKeyDown={(event) => handleCellKeyDown(event, rowIndex, colIndex)}
                     >
                       {cell}
                     </button>

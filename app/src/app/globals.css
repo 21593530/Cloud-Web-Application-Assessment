@@ -478,6 +478,11 @@ select {
   cursor: pointer;
 }
 
+.word-cell:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
 .word-cell.selected {
   background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-strong) 100%);
   color: var(--brand-navy);

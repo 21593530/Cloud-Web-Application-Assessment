@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.gitignore
+*.db
+*.db-journal
+.env
+.env.*
+!.env.example
+npm-debug.log*
+README.md
+Assessment2_Plan.md
+ASSESSMENT_NOTES.md

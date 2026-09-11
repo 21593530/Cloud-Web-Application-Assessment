@@ -209,6 +209,9 @@ Keep this section updated as implementation phases are completed. It is intended
 - Word Search also supports deleting a selected saved activity, while both builders show loading/save/error status messages.
 - Saved Word Search records regenerate the local board from stored ordered phoneme tokens and grid settings; the standalone export workflow remains available.
 - Phase 5 TypeScript and production build checks passed after fixing the persisted word-position mapping.
+- Phase 6 accessibility work started: Word Search cells now support Enter/Space selection, visible keyboard focus, row/column labels, `aria-pressed`, and live status feedback.
+- Word Search matching now compares ordered phoneme token arrays rather than reversing characters, including in the standalone export.
+- Multi-character phoneme regression check passed for forward, reverse, and split-token cases.
 
 ### Video evidence still required
 - [ ] Show the schema and explain why phonemes are ordered string records rather than characters.
