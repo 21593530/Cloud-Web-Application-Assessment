@@ -5,9 +5,9 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
+COPY prisma ./prisma
 RUN npm install
 
-COPY prisma ./prisma
 COPY src ./src
 COPY public ./public
 COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs next-env.d.ts ./
