@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { createActivity, fetchActivities, removeActivity, updateActivity } from "@/lib/api/activities";
 import type { ActivityRecord } from "@/lib/domain/activity";
 import { tokensMatchInEitherDirection } from "@/lib/domain/phoneme";
@@ -428,6 +428,7 @@ function buildExportHtml(board: string[][], words: PuzzleWord[]) {
 
 export default function WordSearchPage() {
   const [wordInput, setWordInput] = useState(defaultWordInput);
+  const [activityTitle, setActivityTitle] = useState("");
   const [rows, setRows] = useState(8);
   const [cols, setCols] = useState(8);
   const [board, setBoard] = useState<string[][]>([]);
@@ -439,13 +440,18 @@ export default function WordSearchPage() {
   const [selectedActivityId, setSelectedActivityId] = useState("");
   const [storageStatus, setStorageStatus] = useState("Loading saved Word Search activities...");
 
-  const initialPuzzle = useMemo(() => {
-    const parsed = parseWords(defaultWordInput);
-    return buildPuzzle(parsed, 8, 8);
-  }, []);
+  const activeBoard = board;
+  const activeWords = words;
 
-  const activeBoard = board.length ? board : initialPuzzle.board;
-  const activeWords = words.length ? words : initialPuzzle.words;
+  // Random puzzle generation must happen client-side only, otherwise the
+  // server-rendered board and the client's first render disagree and React
+  // throws a hydration mismatch.
+  useEffect(() => {
+    const parsed = parseWords(defaultWordInput);
+    const result = buildPuzzle(parsed, 8, 8);
+    setBoard(result.board);
+    setWords(result.words);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -480,6 +486,12 @@ export default function WordSearchPage() {
   };
 
   const loadSavedActivity = (id: string) => {
+    if (!id) {
+      setSelectedActivityId("");
+      setActivityTitle("");
+      setStorageStatus("Unsaved draft selected.");
+      return;
+    }
     const activity = savedActivities.find((item) => item.id === id);
     if (!activity) return;
     const loadedWords = activity.words
@@ -496,26 +508,29 @@ export default function WordSearchPage() {
     const nextCols = settings.cols ?? 8;
     const result = buildPuzzle(loadedWords, nextRows, nextCols);
     setSelectedActivityId(id);
+    setActivityTitle(activity.title);
     setWordInput(loadedWords.map((word) => word.tokens.join(" ")).join("\n"));
     setRows(nextRows);
     setCols(nextCols);
     setBoard(result.board);
     setWords(result.words);
     setSelectedCells([]);
-    setFeedback(`Loaded ${activity.title}.`);
-    setStorageStatus(`Loaded ${activity.title}.`);
+    setFeedback(`Loaded "${activity.title}".`);
+    setStorageStatus(`Loaded "${activity.title}".`);
   };
 
-  const saveActivity = async () => {
+  const saveActivity = async (forceNew = false) => {
     const parsed = parseWords(wordInput);
     if (parsed.length < 2) {
       setStorageStatus("Add at least two words before saving a Word Search activity.");
       return;
     }
 
+    const title = activityTitle.trim() || `Word Search (${parsed.length} words)`;
+
     const payload = {
       type: "WORD_SEARCH" as const,
-      title: "Phoneme Word Search",
+      title,
       clue: "Find each phoneme-based word in the grid.",
       difficulty: "EASY" as const,
       settings: { rows, cols },
@@ -528,12 +543,14 @@ export default function WordSearchPage() {
     };
 
     try {
-      const saved = selectedActivityId
+      const isUpdate = Boolean(selectedActivityId) && !forceNew;
+      const saved = isUpdate
         ? await updateActivity(selectedActivityId, payload)
         : await createActivity(payload);
       setSelectedActivityId(saved.id);
+      setActivityTitle(saved.title);
       setSavedActivities((current) => [saved, ...current.filter((activity) => activity.id !== saved.id)]);
-      setStorageStatus(`Saved ${saved.title}.`);
+      setStorageStatus(isUpdate ? `Updated "${saved.title}".` : `Saved new "${saved.title}".`);
     } catch (error: unknown) {
       setStorageStatus(error instanceof Error ? error.message : "Activity could not be saved.");
     }
@@ -545,6 +562,7 @@ export default function WordSearchPage() {
       await removeActivity(selectedActivityId);
       setSavedActivities((current) => current.filter((activity) => activity.id !== selectedActivityId));
       setSelectedActivityId("");
+      setActivityTitle("");
       setStorageStatus("Saved activity deleted.");
     } catch (error: unknown) {
       setStorageStatus(error instanceof Error ? error.message : "Activity could not be deleted.");
@@ -623,20 +641,41 @@ export default function WordSearchPage() {
           <label className="field-stack">
             <span>Saved activity</span>
             <select value={selectedActivityId} onChange={(event) => loadSavedActivity(event.target.value)}>
-              <option value="">Current unsaved activity</option>
+              <option value="">Current unsaved activity (New Draft)</option>
               {savedActivities.map((activity) => (
                 <option key={activity.id} value={activity.id}>{activity.title}</option>
               ))}
             </select>
           </label>
           <div className="button-row">
-            <button type="button" className="generate-button" onClick={saveActivity}>Save Activity</button>
-            <button type="button" className="secondary-button" onClick={deleteSavedActivity} disabled={!selectedActivityId}>Delete Saved Activity</button>
+            <button type="button" className="generate-button" onClick={() => saveActivity(false)}>
+              {selectedActivityId ? "Update Saved Activity" : "Save as New Activity"}
+            </button>
+            {selectedActivityId ? (
+              <>
+                <button type="button" className="secondary-button" onClick={() => saveActivity(true)}>
+                  Save as New Copy
+                </button>
+                <button type="button" className="secondary-button" onClick={deleteSavedActivity}>
+                  Delete Saved Activity
+                </button>
+              </>
+            ) : null}
             <span className="status-pill" aria-live="polite">{storageStatus}</span>
           </div>
         </div>
 
         <div className="word-search-controls">
+          <label className="field-stack">
+            <span>Activity Title (custom name for saving)</span>
+            <input
+              type="text"
+              placeholder="e.g. Food Phoneme Search, Animals Puzzle"
+              value={activityTitle}
+              onChange={(event) => setActivityTitle(event.target.value)}
+            />
+          </label>
+
           <label className="field-stack">
             <span>Words (one per line, phonemes separated by spaces)</span>
             <textarea value={wordInput} onChange={(event) => setWordInput(event.target.value)} rows={6} />

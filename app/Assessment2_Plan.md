@@ -197,7 +197,7 @@ Update the `README.md` with:
 - [x] Validation and error handling are fully functional.
 - [x] Wordle and Word Search interfaces load backend data.
 - [x] Standalone HTML exports are generated successfully from saved data.
-- [ ] Application runs completely inside a Docker container. *(Docker build/run verified in the Dockerfile design; runtime execution has not been confirmed on this machine because the Docker CLI is not installed here. Verify on a Docker-enabled machine before recording the video.)*
+- [x] Application runs completely inside a Docker container. *(Verified: built and ran the real image inside WSL2 Docker Engine, confirmed `/health` returns 200, and full CRUD — create/read/update/delete — plus `400`/`404` error responses all work against the containerized app with a persisted named volume.)*
 - [x] Word Search keyboard accessibility is improved.
 - [x] Code is highly modularised.
 - [x] `README.md` and GitHub commit history are updated and professional.
@@ -247,8 +247,20 @@ Also corrected stale Assessment 1 branding still visible across the running site
 ### About page reverted (12 Sep 2026)
 The About page was reverted back to its original Assessment 1 wording and its original embedded tutorial video, per the brief's requirement that the existing frontend "must remain in place." The Assessment 2 technical walkthrough (schema, CRUD, Docker, `/health`, keyboard accessibility) is a separate video submitted directly to the LMS for the marker, not embedded in the app. The site header badge and footer still read "Assessment 2" as persistent site chrome; only the About page body text and its video were reverted.
 
-### Docker status (12 Sep 2026)
-Docker CLI is still not installed on this machine. An attempt to check WSL availability inadvertently triggered the Windows "install WSL" prompt, which enabled the `VirtualMachinePlatform` Windows feature (a system-level change requiring a reboot to take effect). No Linux distribution or Docker Engine was installed. Installing Docker Desktop/Engine was intentionally not pursued further without explicit user confirmation, since it requires a reboot and administrator involvement. The Dockerfile, `.dockerignore`, and entrypoint script are implemented and reviewed, but runtime container verification remains outstanding until Docker is available (post-reboot, on this machine or another Docker-enabled machine).
+### Docker status (12 Sep 2026, updated after reboot)
+Docker is now installed and verified working: Docker Engine 29.8.0 was installed inside a WSL2 Ubuntu distribution (no Docker Desktop GUI needed), avoiding further reboots. Real verification performed:
+- `docker build -t phonotrail .` succeeded after two real fixes (see below).
+- `docker run` with `-v phonotrail-data:/data` started the container, applied the Prisma migration, and started the production server.
+- `GET /api/health` returned `200` with `{"status":"ok"}`.
+- Full CRUD verified against the running container: `POST` (create, `200`), `GET` (read, `200`), `PATCH` (update, `200`), `DELETE` (`204`), invalid payload (`400`), and a well-formed but nonexistent activity ID (`404`).
+- Re-running the container against the same named volume showed "No pending migrations to apply," confirming the SQLite data persisted correctly across container restarts.
+
+**Two real bugs found and fixed during this verification:**
+1. `npm ci` failed inside the Linux build stage because the Windows-generated `package-lock.json` did not pin the Linux-specific optional native binaries needed by Tailwind's CSS engine. Fixed by changing the Dockerfile's install step from `npm ci` to `npm install`, which resolves correctly on any platform.
+2. Prisma logged an OpenSSL detection warning on `node:24-bookworm-slim`. Fixed by installing `openssl` in both the builder and runner stages.
+
+### Hydration bug found and fixed (12 Sep 2026)
+The Word Search page computed its initial demo puzzle with `Math.random()` inside a `useMemo` that ran during server-side rendering, so the server-rendered board disagreed with the client's first render, throwing a React hydration-mismatch error in the browser console on every load. Fixed by moving the random puzzle generation into a `useEffect` (client-only), which resolves the mismatch since the server and the client's first render now agree (both render nothing until the effect runs).
 
 ## Phase-by-phase feasibility conclusion
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createActivity, fetchActivities, updateActivity } from "@/lib/api/activities";
+import { createActivity, fetchActivities, removeActivity, updateActivity } from "@/lib/api/activities";
 import type { ActivityRecord } from "@/lib/domain/activity";
 
 type KeyState = "correct" | "present" | "absent" | "unknown";
@@ -371,6 +371,11 @@ export default function WordlePage() {
   };
 
   const loadSavedActivity = (id: string) => {
+    if (!id) {
+      setSelectedActivityId("");
+      setStorageStatus("Unsaved draft selected.");
+      return;
+    }
     const activity = savedActivities.find((item) => item.id === id);
     if (!activity || !activity.words[0]) return;
     const word = activity.words[0];
@@ -381,10 +386,15 @@ export default function WordlePage() {
     setClue(activity.clue ?? "");
     setDifficulty(difficultyIndex >= 0 ? difficultyIndex : 1);
     resetGameState();
-    setStorageStatus(`Loaded ${activity.title}.`);
+    setStorageStatus(`Loaded "${activity.title}".`);
   };
 
-  const saveActivity = async () => {
+  const saveActivity = async (forceNew = false) => {
+    if (!targetTokens.length) {
+      setStorageStatus("Add phonemes to the target word before saving.");
+      return;
+    }
+
     const payload = {
       type: "WORDLE" as const,
       title: englishWord ? `${englishWord} phoneme Wordle` : "Phoneme Wordle",
@@ -395,14 +405,27 @@ export default function WordlePage() {
     };
 
     try {
-      const saved = selectedActivityId
+      const isUpdate = Boolean(selectedActivityId) && !forceNew;
+      const saved = isUpdate
         ? await updateActivity(selectedActivityId, payload)
         : await createActivity(payload);
       setSelectedActivityId(saved.id);
       setSavedActivities((current) => [saved, ...current.filter((activity) => activity.id !== saved.id)]);
-      setStorageStatus(`Saved ${saved.title}.`);
+      setStorageStatus(isUpdate ? `Updated "${saved.title}".` : `Saved new "${saved.title}".`);
     } catch (error: unknown) {
       setStorageStatus(error instanceof Error ? error.message : "Activity could not be saved.");
+    }
+  };
+
+  const deleteSavedActivity = async () => {
+    if (!selectedActivityId) return;
+    try {
+      await removeActivity(selectedActivityId);
+      setSavedActivities((current) => current.filter((activity) => activity.id !== selectedActivityId));
+      setSelectedActivityId("");
+      setStorageStatus("Saved activity deleted.");
+    } catch (error: unknown) {
+      setStorageStatus(error instanceof Error ? error.message : "Activity could not be deleted.");
     }
   };
 
@@ -499,14 +522,26 @@ export default function WordlePage() {
           <label className="field-stack">
             <span>Saved activity</span>
             <select value={selectedActivityId} onChange={(event) => loadSavedActivity(event.target.value)}>
-              <option value="">Current unsaved activity</option>
+              <option value="">Current unsaved activity (New Draft)</option>
               {savedActivities.map((activity) => (
                 <option key={activity.id} value={activity.id}>{activity.title}</option>
               ))}
             </select>
           </label>
           <div className="button-row">
-            <button type="button" className="generate-button" onClick={saveActivity}>Save Activity</button>
+            <button type="button" className="generate-button" onClick={() => saveActivity(false)}>
+              {selectedActivityId ? "Update Saved Activity" : "Save as New Activity"}
+            </button>
+            {selectedActivityId ? (
+              <>
+                <button type="button" className="secondary-button" onClick={() => saveActivity(true)}>
+                  Save as New Copy
+                </button>
+                <button type="button" className="secondary-button" onClick={deleteSavedActivity}>
+                  Delete Saved Activity
+                </button>
+              </>
+            ) : null}
             <span className="status-pill" aria-live="polite">{storageStatus}</span>
           </div>
         </div>

@@ -2,8 +2,10 @@ FROM node:24-bookworm-slim AS builder
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 COPY prisma ./prisma
 COPY src ./src
@@ -21,6 +23,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV DATABASE_URL="file:/data/phonotrail.db"
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /data
 
 COPY --from=builder /app/package.json ./package.json
