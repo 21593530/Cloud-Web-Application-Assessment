@@ -35,9 +35,9 @@ const baloo = Baloo_2({
 });
 
 export const metadata: Metadata = {
-  title: "PhonoTrail Studio - Frontend Design and Usability",
+  title: "PhonoTrail Studio - Backend & Database Integration",
   description:
-    "Frontend builder for phoneme-based Wordle and Word Search classroom activities.",
+    "Full-stack builder for phoneme-based Wordle and Word Search classroom activities, backed by a database and validated API.",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -65,7 +65,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <div className="shell-inner footer-row">
             <p>Name: Isaac Riley Lambert</p>
             <p>Student Number: 21593530</p>
-            <p>Assessment 1 · Frontend Design and Usability</p>
+            <p>Assessment 2 · Backend Implementation and Database Integration</p>
           </div>
         </footer>
       </body>

@@ -160,6 +160,9 @@ Update the `README.md` with:
 *   *Commit Strategy:* Use focused commits (e.g., "Add Prisma database schema", "Integrate saved activities into Wordle").
 
 ## Phase 9: Video Plan (target 6–8 minutes; confirm the Assessment 2 LMS limit)
+
+**Submission format:** This is a separate technical walkthrough video for the marker, submitted directly to the LMS alongside the project `.zip` (without `node_modules`) and the GitHub repository link — the same submission pattern as Assessment 1. It is **not** embedded in the app. The About page keeps its original Assessment 1 wording and its original short tutorial video embed (`phonotrailaboutvideo.mp4`), because the Assessment 2 brief requires the existing frontend to "remain in place." The new technical video only needs to exist as an uploaded/linked file for the marker.
+
 *   **0:00–0:30:** Face, narration, student ID, project introduction.
 *   **0:30–1:15:** Explain backend architecture and Prisma database schema.
 *   **1:15–2:00:** Show Docker container running successfully.
@@ -173,19 +176,19 @@ Update the `README.md` with:
 ---
 
 ## Definition of Done
-- [ ] Database schema supports multiple activities and multi-character phonemes.
-- [ ] CRUD APIs work with real stored data.
-- [ ] `/health` returns `200 OK`.
-- [ ] Validation and error handling are fully functional.
-- [ ] Wordle and Word Search interfaces load backend data.
-- [ ] Standalone HTML exports are generated successfully from saved data.
-- [ ] Application runs completely inside a Docker container.
-- [ ] Word Search keyboard accessibility is improved.
-- [ ] Code is highly modularised.
-- [ ] `README.md` and GitHub commit history are updated and professional.
-- [ ] `node_modules` is excluded from the final `.zip` file.
+- [x] Database schema supports multiple activities and multi-character phonemes.
+- [x] CRUD APIs work with real stored data.
+- [x] `/health` returns `200 OK`.
+- [x] Validation and error handling are fully functional.
+- [x] Wordle and Word Search interfaces load backend data.
+- [x] Standalone HTML exports are generated successfully from saved data.
+- [ ] Application runs completely inside a Docker container. *(Docker build/run verified in the Dockerfile design; runtime execution has not been confirmed on this machine because the Docker CLI is not installed here. Verify on a Docker-enabled machine before recording the video.)*
+- [x] Word Search keyboard accessibility is improved.
+- [x] Code is highly modularised.
+- [x] `README.md` and GitHub commit history are updated and professional.
+- [ ] `node_modules` is excluded from the final `.zip` file. *(Confirm at packaging time; already excluded from git via `.gitignore`.)*
 - [ ] Video evidence meets all rubric criteria (under 8 minutes).
-- [ ] AI acknowledgement and APA 7th ed. references are included.
+- [x] AI acknowledgement and APA 7th ed. references are included (`REFERENCES.md`).
 
 ## Video progress log
 
@@ -220,6 +223,17 @@ Keep this section updated as implementation phases are completed. It is intended
 - [ ] Show frontend data loading from the database.
 - [ ] Show Wordle and Word Search generation from saved records.
 - [ ] Show validation/error handling, Docker, `/health`, keyboard accessibility, and final exports.
+
+### Critical fix applied during final review (12 Sep 2026)
+A missing `app/.env` file meant the locally running dev server had no `DATABASE_URL` at all, so every `/api/activities` request returned `500 Internal Server Error` and both builder pages showed "Activities could not be loaded." This was invisible in prior `npm run build`/`prisma migrate deploy` checks because those commands had `DATABASE_URL` set manually in the terminal session, not through a persisted `.env` file. Fixed by creating `app/.env` (gitignored) with `DATABASE_URL="file:./prisma/dev.db"` and restarting the dev server; confirmed working via a real browser session showing "1 saved Wordle activity." **Before recording the video, confirm `.env` exists locally (copy from `.env.example`) and the dev/production server is started fresh after any `.env` change.**
+
+Also corrected stale Assessment 1 branding still visible across the running site: the page `<title>`, the site footer, and the About page all referenced "Assessment 1 — Frontend Design and Usability" instead of Assessment 2. These are now updated.
+
+### About page reverted (12 Sep 2026)
+The About page was reverted back to its original Assessment 1 wording and its original embedded tutorial video, per the brief's requirement that the existing frontend "must remain in place." The Assessment 2 technical walkthrough (schema, CRUD, Docker, `/health`, keyboard accessibility) is a separate video submitted directly to the LMS for the marker, not embedded in the app. The site header badge and footer still read "Assessment 2" as persistent site chrome; only the About page body text and its video were reverted.
+
+### Docker status (12 Sep 2026)
+Docker CLI is still not installed on this machine. An attempt to check WSL availability inadvertently triggered the Windows "install WSL" prompt, which enabled the `VirtualMachinePlatform` Windows feature (a system-level change requiring a reboot to take effect). No Linux distribution or Docker Engine was installed. Installing Docker Desktop/Engine was intentionally not pursued further without explicit user confirmation, since it requires a reboot and administrator involvement. The Dockerfile, `.dockerignore`, and entrypoint script are implemented and reviewed, but runtime container verification remains outstanding until Docker is available (post-reboot, on this machine or another Docker-enabled machine).
 
 ## Phase-by-phase feasibility conclusion
 
