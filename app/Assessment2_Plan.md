@@ -163,15 +163,30 @@ Update the `README.md` with:
 
 **Submission format:** This is a separate technical walkthrough video for the marker, submitted directly to the LMS alongside the project `.zip` (without `node_modules`) and the GitHub repository link — the same submission pattern as Assessment 1. It is **not** embedded in the app. The About page keeps its original Assessment 1 wording and its original short tutorial video embed (`phonotrailaboutvideo.mp4`), because the Assessment 2 brief requires the existing frontend to "remain in place." The new technical video only needs to exist as an uploaded/linked file for the marker.
 
-*   **0:00–0:30:** Face, narration, student ID, project introduction.
-*   **0:30–1:15:** Explain backend architecture and Prisma database schema.
-*   **1:15–2:00:** Show Docker container running successfully.
-*   **2:00–2:30:** Show `/health` returning `200 OK`.
-*   **2:30–4:00:** Demonstrate database CRUD (Create, Read, Update, Delete).
-*   **4:00–5:15:** Show backend data successfully driving the Wordle activity.
-*   **5:15–6:30:** Show backend data driving the Word Search activity.
-*   **6:30–7:15:** Show validation/error handling and keyboard accessibility.
-*   **7:15–8:00:** Summarise technical decisions and mention the supporting APA 7 sources and AI acknowledgement requirements.
+### Exact steps for each segment
+
+*   **0:00–0:30 — Intro:** Face on camera, state student number, say the project name and "Assessment 2, backend and database integration."
+
+*   **0:30–1:15 — Architecture:** Open `prisma/schema.prisma` in the editor. Point at the three models (`Activity`, `Word`, `Phoneme`) and read out one phoneme symbol such as `tʃ` while saying "this is stored as one complete token, not split into individual characters, so multi-character phonemes survive intact."
+
+*   **1:15–2:00 — Docker:** In a terminal, run `docker build -t phonotrail .` then `docker run --rm -p 3000:3000 -v phonotrail-data:/data -e DATABASE_URL=file:/data/phonotrail.db phonotrail`. Wait for the "Applying database migrations..." and "Starting PhonoTrail Studio..." log lines, then say "the container is now running the production build with a persisted volume."
+
+*   **2:00–2:30 — `/health`:** With the container (or `npm run dev`) running, open a new browser tab to `http://localhost:3000/api/health`. Open DevTools → Network tab first, reload the page, click the `health` request, and point at the **Status: 200** and the response body `{"data":{"status":"ok"}}`. Say out loud: "the health endpoint returns HTTP 200 with a status ok payload."
+
+*   **2:30–4:00 — CRUD, shown through the Network tab so the HTTP verbs and status codes are visible:**
+    1. **Create:** Open DevTools → Network, filter by "Fetch/XHR". Go to `/word-search`, fill in a new word list, click **Save Activity**. Click the resulting network request and show method `POST /api/activities`, status `201`, and the JSON body containing the new `id`.
+    2. **Read:** Reload the page. Show the `GET /api/activities` request firing on load, status `200`, and the saved activity appearing in the "Saved activity" dropdown.
+    3. **Update:** Select the saved activity, change a word or the grid size, click **Save Activity** again. Show the `PATCH /api/activities/[id]` request and its `200` response with the updated fields.
+    4. **Delete:** Click **Delete Saved Activity**. Show the `DELETE /api/activities/[id]` request and its `204 No Content` response, then show the dropdown no longer lists it.
+    5. **Validation error (optional but strong evidence):** Try saving with an empty word list or clear a required field, show the resulting `400` response and the on-page error message.
+
+*   **4:00–5:15 — Wordle from saved data:** Open `/wordle`, select a saved activity from the dropdown, show the builder repopulating with the stored phonemes/clue/difficulty, then play a guess in the live preview to show it is driven by that loaded record.
+
+*   **5:15–6:30 — Word Search from saved data:** Open `/word-search`, select a saved activity, show the grid regenerating from stored tokens, demonstrate keyboard selection (Tab to a cell, Enter/Space to select, Tab through the path, Enter to check), then click **Export HTML** and open the downloaded file to show it works standalone.
+
+*   **6:30–7:15 — Validation/error handling and accessibility recap:** Briefly show one more `400`/`404` example (e.g. request a non-existent activity id) and narrate the Word Search keyboard workflow you just demonstrated, naming the specific technique (Enter/Space activation, visible focus ring, `aria-pressed`, live status text).
+
+*   **7:15–8:00 — Close:** Summarise the technical decisions (SQLite + Prisma, Zod validation, Docker volume for persistence) and state that APA 7 references and the AI acknowledgement are included in `REFERENCES.md`.
 
 ---
 

@@ -11,6 +11,13 @@ export default function AboutPage() {
         The experience was built with Next.js, React, TypeScript, and custom CSS styling to create a
         cohesive, responsive interface for classroom activities such as Wordle and Word Search.
       </p>
+      <h2 id="about-backend-heading">Assessment 2 — Backend Implementation and Database Integration</h2>
+      <p>
+        Assessment 2 builds on this same toolkit with a database behind the scenes for staff. Teachers can
+        now save an activity they have built, come back later to load and keep editing it, and remove
+        activities they no longer need — all without changing how the Wordle and Word Search builders look
+        or feel to use.
+      </p>
 
       <div className="feature-list compact">
         <article className="feature-card">
