@@ -2,7 +2,7 @@
 
 PhonoTrail Studio began as a frontend-only Assessment 1 project and is now a database-backed full-stack application for Assessment 2. It combines the original teacher-facing Wordle and Word Search builders with Prisma/SQLite persistence, Zod validation, and Next.js API routes.
 
-See the root [README.md](../README.md) for full setup, API, and Docker instructions. See [Assessment2_Plan.md](./Assessment2_Plan.md) for the phase-by-phase implementation plan and evidence log, [ASSESSMENT_NOTES.md](./ASSESSMENT_NOTES.md) for the rubric/feedback alignment, and [REFERENCES.md](./REFERENCES.md) for the APA 7 sources and AI acknowledgement.
+See the root [README.md](../README.md) for full setup, API, and Docker instructions. See [REFERENCES.md](./REFERENCES.md) for the APA 7 sources and AI acknowledgement.
 
 ## Included pages
 
@@ -22,6 +22,15 @@ npx prisma migrate deploy
 npm run db:seed
 npm run dev
 ```
+## Run as Docker
+
+# kill old containers
+wsl -d Ubuntu -u root -- docker rm -f phonotrail-app
+
+# run the docker
+wsl -d Ubuntu -u root -- bash -c "cd /mnt/c/repos/cloud-web-app/app && docker build -t phonotrail ."
+
+wsl -d Ubuntu -u root -- bash -c "docker run --rm -p 3000:3000 -v phonotrail-data:/data -e DATABASE_URL=file:/data/phonotrail.db --name phonotrail-app phonotrail"
 
 Open http://localhost:3000 to view the site.
 
