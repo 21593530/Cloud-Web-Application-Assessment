@@ -102,7 +102,3 @@ The runtime image uses the Prisma migration step before starting the app and sto
 - Word Search matching is token-aware to avoid corrupting phoneme strings during reverse checks.
 - The full-stack architecture keeps validation, database access, and export logic separated from UI pages to support reuse and easier maintenance.
 - SQLite is appropriate for this Assessment 2 scope, but a server-backed database would be the next step for multi-instance production deployments.
-
-## Final submission notes
-
-Before submitting, remove node_modules from any archive and include the required evidence package: database CRUD walkthrough, validation checks, Docker evidence if available, and the required references and AI acknowledgement statement.
