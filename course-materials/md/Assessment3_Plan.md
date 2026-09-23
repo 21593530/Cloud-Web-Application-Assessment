@@ -308,6 +308,56 @@ Define exactly what will be recorded, calculated, displayed, and demonstrated be
 - No personal or unnecessary data will be collected.
 - No database or application code has been changed yet.
 
+### Phase 1 completion log - 23 September 2026
+
+Status: **Complete. The Assessment 3 metrics and dashboard contract is defined.**
+
+Primary deliverable:
+
+- `course-materials/md/Assessment3_Metrics_Contract.md`
+
+Decisions completed in this phase:
+
+- Existing `Activity`, `Word`, and `Phoneme` models remain the authoritative source for current saved activity data and will not be redesigned.
+- Current Wordle, Word Search, and total saved-activity counts will be calculated directly from `Activity`.
+- A separate append-only `UsageEvent` model will store page usage and generation outcomes without a foreign-key relationship that could remove reporting history when an activity is deleted.
+- Final event types are `PAGE_VIEW`, `PAGE_DURATION`, `GENERATION_SUCCESS`, and `GENERATION_FAILURE`.
+- Activity creation does not require a duplicate event. The live activity table provides the required creation summary.
+- Event records use controlled fields only. Raw word lists, phonemes, clues, titles, exported HTML, personal information, IP addresses, and browser fingerprints will not be collected.
+- Client event requests cannot supply their own timestamp or source label.
+- Event sources are `LIVE`, `SIMULATED`, and `TEST`; the public endpoint always assigns `LIVE` server-side.
+- Average time on page is the arithmetic mean of valid 1-second to 30-minute `PAGE_DURATION` samples and is always accompanied by its sample count.
+- Most-used activity type is based on generation attempts rather than the number of saved configurations. Empty and tied results are explicitly represented.
+- Generation success rate is successful attempts divided by all attempts, with `null` used when no attempts exist.
+- A seven-day generation trend, per-page duration summary, recent saved activities, recent events, and source disclosure will support the reporting requirement.
+- Alert rules now have precise conditions for no activities, missing activity types, no duration samples, recent generation failures, and a success rate below 80% after at least five attempts.
+- Database unavailability is a dashboard request error rather than a misleading normal alert.
+- Simulated records will use stable IDs and deterministic, idempotent seed behaviour. They will be disclosed in dashboard source counts and will never contain personal or raw classroom content.
+- `POST /api/metrics/events` is the planned validated ingestion endpoint.
+- `GET /api/dashboard/summary` is the planned aggregation endpoint.
+- The existing `GET /api/health` route is preserved. Dashboard database status will come from the successful database-backed summary operation.
+- Page-duration delivery is documented as best-effort browser telemetry rather than a guaranteed complete measure.
+- Metric recording is non-blocking and cannot become a prerequisite for an existing builder or export action.
+
+Expected future touchpoints were identified before implementation. The later phases may add focused domain, validation, repository, API, dashboard, telemetry, migration, seed, and contract-validation files. Existing changes should be limited to adding the new Prisma model, mounting the page tracker, adding Dashboard navigation, instrumenting the two existing `exportHtml` functions, adding dashboard styles, and adding non-destructive package scripts.
+
+Phase 1 verification:
+
+- Assessment 3 brief and rubric were re-read and cross-checked against the contract.
+- Every explicitly required operational statistic now has a documented formula and empty state.
+- Request validation and cross-field rules are documented.
+- Dashboard loading, ready, empty, warning, request-error, and partial-instrumentation-failure states are documented.
+- Data retention, privacy boundaries, simulated data, and accessibility expectations are documented.
+- No file under `app/` was modified.
+- No Prisma migration was created or applied.
+- No application record or database file was changed.
+
+Video evidence/narration value:
+
+- The final video can explain that current activity totals remain sourced from Assessment 2 records while operational usage comes from a separate `UsageEvent` model.
+- The most-used activity type is intentionally based on generation attempts, making it a usage statistic rather than a duplicate configuration count.
+- Simulated records are deliberately labelled and disclosed, meeting the brief without pretending they are live user behaviour.
+
 ---
 
 ## Phase 2: Database model, migration, and simulated records
@@ -944,7 +994,7 @@ Each phase update should record:
 | Phase | Status | Completion date | Outcome summary | Video/evidence value |
 |---|---|---|---|---|
 | Pre-Phase: Baseline and fatal-flaw gate | Complete | 16 September 2026 | No fatal A1/A2 flaw found. Build, routes, validation, database integrity, health, and disposable CRUD checks completed without changing established behaviour. | Establishes that Assessment 3 extends a stable full-stack baseline. Detailed evidence is in the Pre-Phase completion log above. |
-| Phase 1: Contract and metric design | Not started | - | - | Explain what each dashboard metric means and why the event model was chosen. |
+| Phase 1: Contract and metric design | Complete | 23 September 2026 | Defined the `UsageEvent` contract, metric formulas, validation rules, dashboard response, alerts, simulated data strategy, privacy limits, and minimal implementation touchpoints. No application or database code changed. | Explain why current activity counts remain authoritative in `Activity`, while operational usage is stored separately and safely. |
 | Phase 2: Database model and simulated records | Not started | - | - | Show the added Prisma model, migration, and representative stored metric records. |
 | Phase 3: Instrumentation and observability APIs | Not started | - | - | Show event ingestion, dashboard aggregation, and health behaviour. |
 | Phase 4: Minimal builder instrumentation | Not started | - | - | Generate an activity and show the corresponding database-backed metric update. |
@@ -966,6 +1016,7 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Assessment 2 baseline regression | Demonstrate that A3 extends a working application | Complete | Pre-Phase completion log in this document |
 | Health response | HTTP 200 and healthy status | Baseline complete | `/api/health` returned `200` with `{"data":{"status":"ok"}}`; final A3 database-aware result pending |
 | Database integrity | Preserve existing activities, words, and phonemes | Complete | 3 activities, 7 words, 22 phonemes; integrity check `ok` |
+| Metrics and dashboard contract | Define statistics before implementation | Complete | `course-materials/md/Assessment3_Metrics_Contract.md` |
 | Dashboard screenshots | Show reporting interface and operational statistics | Pending | - |
 | Stored metric records | Prove persistence and retrieval | Pending | - |
 | Generation instrumentation | Prove successful and failed generation counts | Pending | - |
@@ -1005,7 +1056,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 0.1 - baseline confirmed; Assessment 3 implementation results pending.**
+Status: **Working draft 0.2 - baseline and Phase 1 contract confirmed; implementation results pending.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
@@ -1043,7 +1094,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> I kept the completed Assessment 2 Activity, Word, and Phoneme models intact and added [FINAL MODEL NAME] as a separate append-only reporting model. A user action is validated by the server, stored as a small event record, aggregated by the dashboard service, and then returned through [FINAL SUMMARY ENDPOINT]. The existing health endpoint returns HTTP 200 and now reports [FINAL HEALTH BEHAVIOUR]. No raw word lists, phonemes, personal information, or browser fingerprints are stored in the usage records.
+> I kept the completed Assessment 2 Activity, Word, and Phoneme models intact and added `UsageEvent` as a separate append-only reporting model. A user action is validated by the server, stored as a small event record, aggregated by the dashboard service, and then returned through `/api/dashboard/summary`. The existing health endpoint returns HTTP 200, while the database-backed summary confirms database connectivity. No raw word lists, phonemes, personal information, or browser fingerprints are stored in the usage records.
 
 ### 2:20-3:05 - Live generation and dashboard update
 
