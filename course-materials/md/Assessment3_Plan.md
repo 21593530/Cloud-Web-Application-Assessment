@@ -530,6 +530,70 @@ Create the server-side data collection and aggregation layer used by the dashboa
 - Health and error states are explicit and demonstrable.
 - Original CRUD endpoints still behave as before.
 
+### Phase 3 completion log - 25 September 2026
+
+Status: **Complete. Validated metric ingestion and database-backed dashboard aggregation APIs are implemented.**
+
+Files added:
+
+- `app/src/app/api/metrics/events/route.ts`
+- `app/src/app/api/dashboard/summary/route.ts`
+- `app/src/lib/api/metrics.ts`
+- `app/src/lib/server/metrics.ts`
+
+File changed:
+
+- `app/src/lib/domain/metrics.ts`
+
+Implementation outcome:
+
+- Added `POST /api/metrics/events` with strict JSON and Zod validation. Accepted records are assigned `source = LIVE` by the server and return HTTP `201` with the stored event ID.
+- Added `GET /api/dashboard/summary` as a dynamic, read-only aggregation endpoint.
+- Current activity totals and the five most recently updated activities come directly from the existing `Activity` records rather than duplicated metric data.
+- Generation totals, success rate, most-used activity type, overall and per-page duration averages, a seven-day generation trend, recent events, source totals, and alert conditions are derived server-side from `UsageEvent`.
+- `TEST` records are excluded from reporting. `LIVE` and `SIMULATED` records are counted separately and disclosed in the response.
+- Added shared TypeScript response types and small client helpers for metric writes and dashboard reads.
+- The metric-write helper catches request failures and returns `recorded: false`, providing the non-blocking behaviour required before it is connected to the builders in Phase 4.
+- Unexpected database failures are logged server-side, while clients receive short error codes and messages without Prisma details or stack information.
+- The established `GET /api/health` route and its response were left unchanged. A successful dashboard summary provides the separate database-connectivity proof agreed in Phase 1.
+- No Assessment 1 or Assessment 2 builder, export, CRUD, navigation, visual component, schema, migration, or stored legacy record was changed.
+
+Populated-data verification:
+
+- All HTTP write testing used a disposable copy of the migrated database, never the real demonstration database.
+- Before live test events, the summary returned 3 current activities: 2 Wordle and 1 Word Search.
+- The 31 simulated records produced 13 generation attempts: 11 successful, 2 failed, and an 84.6% success rate.
+- The 12 simulated duration samples produced a rounded overall average of 74,917 ms.
+- Four valid requests were stored successfully: page view, page duration, successful generation, and failed generation; each returned HTTP `201`.
+- After those disposable writes, the summary returned 15 generation attempts, 12 successful, 3 failed, an 80% success rate, 13 duration samples averaging 76,077 ms, and source disclosure of 4 live plus 31 simulated records.
+- The most-used activity type resolved to Wordle, the seven-day trend contained seven dates, and the recent-event list was capped at ten records.
+- The existing `/api/health` endpoint returned HTTP `200` with `{"data":{"status":"ok"}}` during the same run.
+
+Validation, empty-state, and resilience evidence:
+
+- Invalid JSON, an unsupported event type, a client-supplied source, a builder/path mismatch, and an out-of-range duration each returned HTTP `400` with a safe error response.
+- Against a migrated database with no metric records, the summary still returned the 3 authoritative activity records, zero generation attempts, `null` success rate and most-used type, zero duration samples, a seven-date empty trend, and the `NO_DURATION_DATA` informational alert.
+- Against an unmigrated disposable database, both the dashboard and write endpoints returned safe HTTP `500` `DATABASE_ERROR` responses. Prisma diagnostic detail appeared only in server logs.
+- The unchanged `/api/health` endpoint continued returning HTTP `200` while the unmigrated database made the Assessment 3 endpoints fail safely.
+- Disposable create, read, update, and delete requests against the original activity API returned `201`, `200`, `200`, and `204`; activity count returned to 3 after cleanup.
+- `npm run validate:metrics`, `npm run validate:contract`, and `npm run validate:phonemes` passed.
+- Focused ESLint checks passed for every Phase 3 file.
+- The production build and TypeScript checks passed and listed both new API routes alongside the unchanged `/api/health` route.
+- All three disposable databases were removed after testing.
+- The real database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`, matching the Phase 2 post-migration hash.
+- The real database still contains 3 activities, 7 words, 22 phonemes, and exactly 31 `SIMULATED` events; no `LIVE` test record was introduced.
+
+Accepted boundary for the next phase:
+
+- The client write helper is intentionally not called by either builder yet. Phase 4 will add the two small export hooks and page-duration tracking, then prove that a metrics outage cannot interrupt an original export.
+- The dashboard response is complete, but no user-facing dashboard page is claimed until Phase 5.
+
+Video evidence/narration value:
+
+- The summary response can demonstrate that Assessment 2 activity data and Assessment 3 operational events are aggregated without duplicating ownership of saved activities.
+- The safe error response and unchanged `/api/health` response provide concise resilience evidence.
+- A concise narration point is: "The public metrics route validates and stores small live events, while the dashboard service aggregates both labelled simulated and live records and keeps test data out of the report."
+
 ---
 
 ## Phase 4: Minimal builder instrumentation
@@ -563,6 +627,71 @@ Connect the established application actions to Assessment 3 reporting without re
 
 - Real use of both builders updates the reporting data.
 - Existing Assessment 1 and Assessment 2 workflows remain intact.
+
+### Phase 4 completion log - 25 September 2026
+
+Status: **Complete. Both builders and approved application routes now emit non-blocking, validated usage events.**
+
+File added:
+
+- `app/src/components/telemetry/PageUsageTracker.tsx`
+
+Files changed:
+
+- `app/src/app/layout.tsx`
+- `app/src/app/wordle/page.tsx`
+- `app/src/app/word-search/page.tsx`
+
+Implementation outcome:
+
+- Mounted one client-side page-usage tracker in the existing root layout without changing the theme bootstrap, header, main content, or footer structure.
+- The tracker accepts only the approved route allowlist and records one `PAGE_VIEW` when an approved page opens.
+- It records one best-effort `PAGE_DURATION` sample when the route changes, the document becomes hidden, or the page is unloaded.
+- Durations shorter than 1 second are ignored and longer visits are capped at the documented 30-minute maximum before submission.
+- Builder page events are labelled with `WORDLE` or `WORD_SEARCH`; no user identity, classroom content, query string, or arbitrary path is collected.
+- A deferred page-view request avoids duplicate development-only events caused by React Strict Mode immediately cleaning up and re-running effects.
+- Wrapped the existing Wordle and Word Search HTML export sequences with generation outcome recording without changing the generated HTML functions, filenames, button labels, window opening, download clicks, gameplay, or saved-activity workflow.
+- A completed HTML build/open/download sequence records `GENERATION_SUCCESS`.
+- An empty export attempt records `GENERATION_FAILURE` with `EMPTY_ACTIVITY`; an unexpected caught export exception records `GENERATION_FAILURE` with `GENERATION_ERROR`.
+- A selected saved activity ID is attached to its export event. Unsaved drafts remain valid and omit the optional ID.
+- Metric requests remain fire-and-forget through the Phase 3 helper. A rejected request logs a concise warning but cannot prevent a valid export from completing.
+
+Clean browser verification using an isolated database:
+
+- A fresh disposable copy began with the 31 simulated records only: 11 generation successes, 2 failures, and 12 duration samples.
+- Headless Edge loaded the real production Wordle and Word Search pages and selected an existing saved activity in each builder.
+- Wordle export retained the original success feedback and downloaded `phonotrail-wordle.html` at 17,277 bytes with the expected `PhonoTrail Studio — Wordle` title.
+- Word Search export retained the original success feedback and downloaded `phonotrail-word-search.html` at 28,638 bytes with the expected `PhonoTrail Studio Word Search` title.
+- Each valid export stored one `GENERATION_SUCCESS` record with the correct activity type, route, and selected saved-activity ID.
+- A controlled `URL.createObjectURL` exception exercised the real Wordle catch path, showed safe failure feedback, and stored one `GENERATION_FAILURE` with `GENERATION_ERROR`.
+- Navigating Wordle to Word Search and back stored two valid duration samples: 4,098 ms for `/wordle` and 1,474 ms for `/word-search`.
+- The clean browser session produced exactly 8 live records: 3 page views, 2 page durations, 2 generation successes, and 1 generation failure.
+- The dashboard aggregate changed from 11 to 13 successful generations, 2 to 3 failures, and 12 to 14 duration samples.
+- The browser's metrics requests were then deliberately rejected while the original Wordle export APIs remained available. The HTML export still completed and displayed the original success message, while the database correctly received no additional success event.
+- The downloaded standalone files were inspected independently and retained their expected document titles.
+
+Regression and safety evidence:
+
+- `npm run validate:metrics` passed with 4 valid payloads accepted and 8 invalid payloads rejected.
+- `npm run validate:contract` passed.
+- `npm run validate:phonemes` passed for forward, reverse, and split-token cases.
+- Focused ESLint passed for all Phase 4 changes when the one pre-existing Word Search `set-state-in-effect` baseline rule was excluded. Running without that exclusion reports only the already-documented line 453 baseline finding.
+- The production build and TypeScript checks passed with all existing and Assessment 3 routes present.
+- Browser testing used a copied database, a dedicated browser profile, and a temporary download directory. All were removed after verification.
+- The real database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+- The real database remains at 3 activities, 7 words, 22 phonemes, and 31 simulated events with zero live test events.
+- No activity CRUD route, Prisma schema, migration, saved record, gameplay rule, or standalone output template was changed.
+
+Accepted limitations:
+
+- Page-duration delivery is intentionally best-effort because browsers may cancel network work during shutdown. The tracker uses `keepalive`, and the dashboard always exposes the sample count rather than implying complete session coverage.
+- Generation telemetry describes use of the existing export action. It does not track in-preview game moves or store any word/phoneme content.
+
+Video evidence/narration value:
+
+- The final video can export one activity, refresh the dashboard, and show that the corresponding database-backed generation count changes.
+- The non-blocking outage test supports the claim that reporting is additive and cannot become a dependency of the classroom export workflow.
+- A concise narration point is: "After the original standalone export completes, the builder sends a small non-blocking outcome event; if metrics are unavailable, the file still opens and downloads normally."
 
 ---
 
@@ -627,6 +756,83 @@ Optional additions should only be included if the mandatory views are already st
 - Every dashboard and observability rubric item has visible evidence.
 - Wordle and Word Search generation support is clearly connected to stored data.
 - No original builder has been redesigned.
+
+### Phase 5 completion log - 25 September 2026
+
+Status: **Complete. The responsive, data-driven Assessment 3 dashboard and reporting views are implemented.**
+
+Files added:
+
+- `app/src/app/dashboard/page.tsx`
+- `app/src/components/dashboard/MetricCard.tsx`
+- `app/src/components/dashboard/StatusAlert.tsx`
+
+Files changed:
+
+- `app/src/components/layout/SiteHeader.tsx`
+- `app/src/app/globals.css`
+
+Implementation outcome:
+
+- Added the dedicated `/dashboard` route and a Dashboard entry to the existing desktop and mobile navigation.
+- Added all eight required headline statistics: total current activities, saved Wordle count, saved Word Search count, average time on page with sample count, most-used activity type, successful generations, failed generations, and generation success rate.
+- Added explicit application and database health text plus the summary generation time and a refresh control.
+- Rendered the server-defined alerts with visible Information, Warning, or Error labels so meaning never depends on colour alone.
+- Added a Wordle-versus-Word Search generation comparison with text counts and lightweight CSS bars.
+- Added generation outcome totals and an accessible combined success/failure bar.
+- Added semantic tables for average duration by page, the seven-day generation trend, and the ten most recent operational events.
+- Added a recent saved-activity report with type, title, word count, difficulty, updated time, and a link to the correct existing builder.
+- Added explicit disclosure of `LIVE` and `SIMULATED` record totals and stated that `TEST` records are excluded.
+- Added useful loading, healthy, all-clear, informational, warning, empty-data, empty-activity, and request-error presentations.
+- The error screen provides a retry button and direct links to both builders, reinforcing that reporting failure does not block the original classroom workflow.
+- Added a one-column mobile, two-column tablet, and four-column desktop metric layout. Larger reports use responsive grids and horizontally scrollable semantic tables where needed.
+- Used the existing palette, typography, panels, buttons, shadows, dark-theme variables, and responsive conventions without redesigning either builder.
+
+Populated dashboard evidence:
+
+- The dashboard loaded from the real `GET /api/dashboard/summary` response against a disposable copy of the demonstration database.
+- Current activity cards showed 3 saved configurations: 2 Wordle and 1 Word Search, sourced from `Activity`.
+- Operational cards initially showed 11 successful generations, 2 failed generations, 13 total attempts, and an 84.6% success rate.
+- Wordle was identified as the most-used activity type from 7 attempts compared with 6 Word Search attempts.
+- The initial 12 duration samples displayed as an average of approximately 1 minute 15 seconds.
+- The seeded `GENERATION_FAILURES` rule appeared as an explicit Warning with the message that 2 failed attempts occurred during the seven-day window.
+- The page-duration report, seven-day trend, recent saved activities, and recent operational events all rendered from the database-backed response.
+- Live and simulated source totals were presented separately. Opening and leaving disposable dashboard sessions also demonstrated that Phase 4 page tracking contributes new live page records and duration samples.
+
+Empty and error-state evidence:
+
+- Against a migrated database with activities but no metric records, the API and UI retained the 3 current saved activities while showing no generation data, no most-used type, no duration average, zero samples, a zero-valued seven-day trend, and the `NO_DURATION_DATA` information state.
+- Against a fully empty migrated database, the UI displayed zero saved activities, `No data yet` for undefined metrics, builder guidance, `NO_ACTIVITIES`, and `NO_DURATION_DATA` without presenting unknown values as measured zero percentages or durations.
+- Against an unmigrated disposable database, the summary returned safe HTTP `500` `DATABASE_ERROR`; the dashboard displayed `Reporting data is unavailable`, `Try again`, `Open Wordle`, and `Open Word Search` without exposing Prisma details.
+- Server logs retained the useful Prisma `P2021` diagnosis while the browser received only the safe message.
+
+Responsive and accessibility verification:
+
+- Desktop renders were inspected at 1,440 × 1,600 and showed a balanced 4 × 2 headline metric grid plus two-column reporting panels.
+- A narrow 500-pixel render showed the mobile menu and a readable single-column metric/report flow.
+- Real device emulation at 390 × 844 reported `innerWidth = 390`, document and body scroll widths of 390, one metric column, eight metric cards, visible mobile navigation, and hidden desktop navigation.
+- The mobile navigation toggle was focused and opened from the keyboard; the next Tab target was the Home link.
+- The browser accessibility tree exposed the operational dashboard heading, saved-metric heading, labelled system health, Refresh button, both builder links, and accessible names from all three table captions.
+- The checked accessibility tree contained 19 headings, 3 tables, 11 links, and 2 buttons in the populated mobile state.
+- Dashboard-specific buttons and links have visible focus outlines, and the loading animation respects reduced-motion preferences.
+
+Regression and safety evidence:
+
+- Focused ESLint passed for all dashboard, navigation, and telemetry files changed or consumed in this phase.
+- `npm run validate:metrics`, `npm run validate:contract`, and `npm run validate:phonemes` passed.
+- The final production build and TypeScript checks passed and included `/dashboard` with every existing route.
+- All populated, empty, error, desktop, and mobile checks used disposable databases and temporary browser profiles. Temporary databases, screenshots, profiles, and test scripts were removed after review.
+- Final submission screenshots should be captured again from the fully integrated Phase 10 or Phase 12 build so they reflect the submitted state.
+- The real database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+- The real database remains at 3 activities, 7 words, 22 phonemes, and 31 simulated events with zero live test events.
+- No builder page, HTML export template, activity CRUD route, schema, migration, or stored legacy record was changed during Phase 5.
+
+Video evidence/narration value:
+
+- The populated dashboard is now the main visual anchor for the Assessment 3 walkthrough and exposes every required statistic in the opening reporting segment.
+- The source disclosure allows the narration to distinguish honest simulated evidence from live use.
+- The recent activities and builder links make the relationship between stored Assessment 2 configurations and new Assessment 3 operational reporting visible on one page.
+- A concise narration point is: "The dashboard combines authoritative saved-activity counts with validated usage events, clearly discloses simulated data, and turns those records into health, reliability, duration, trend, and recent-activity reports."
 
 ---
 
@@ -962,24 +1168,24 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 
 ### Dashboard and reporting
 
-- [ ] A dedicated data-driven dashboard is implemented.
-- [ ] Wordle and Word Search counts come from stored activity records.
-- [ ] Average time on page is displayed and correctly defined.
-- [ ] Most-used activity type is displayed and correctly defined.
-- [ ] Successful and failed generation counts are displayed.
-- [ ] Health status is visible.
-- [ ] Recent usage or reporting detail is visible.
-- [ ] Useful empty, loading, warning, and error states are implemented.
-- [ ] Dashboard links stored data and activity generation clearly.
+- [x] A dedicated data-driven dashboard is implemented.
+- [x] Wordle and Word Search counts come from stored activity records.
+- [x] Average time on page is displayed and correctly defined.
+- [x] Most-used activity type is displayed and correctly defined.
+- [x] Successful and failed generation counts are displayed.
+- [x] Health status is visible.
+- [x] Recent usage or reporting detail is visible.
+- [x] Useful empty, loading, warning, and error states are implemented.
+- [x] Dashboard links stored data and activity generation clearly.
 
 ### Persistence and observability
 
 - [x] Assessment 3 metric records are stored in the database.
 - [x] Simulated records are deterministic and documented.
-- [ ] Metric ingestion is validated.
+- [x] Metric ingestion is validated.
 - [ ] `/api/health` returns HTTP 200 in the final verified environment.
-- [ ] Dashboard aggregation handles empty and populated data.
-- [ ] Instrumentation failure cannot break the original builders.
+- [x] Dashboard aggregation handles empty and populated data.
+- [x] Instrumentation failure cannot break the original builders.
 
 ### Testing and accessibility
 
@@ -1093,9 +1299,9 @@ Each phase update should record:
 | Pre-Phase: Baseline and fatal-flaw gate | Complete | 16 September 2026 | No fatal A1/A2 flaw found. Build, routes, validation, database integrity, health, and disposable CRUD checks completed without changing established behaviour. | Establishes that Assessment 3 extends a stable full-stack baseline. Detailed evidence is in the Pre-Phase completion log above. |
 | Phase 1: Contract and metric design | Complete | 23 September 2026 | Defined the `UsageEvent` contract, metric formulas, validation rules, dashboard response, alerts, simulated data strategy, privacy limits, and minimal implementation touchpoints. No application or database code changed. | Explain why current activity counts remain authoritative in `Activity`, while operational usage is stored separately and safely. |
 | Phase 2: Database model and simulated records | Complete | 25 September 2026 | Added `UsageEvent`, a forward-only migration, strict metric validation, an idempotent 31-record simulated dataset, reset tooling, and verified recovery. Legacy activity rows and ordered phonemes are unchanged. | Show the original models preserved beside `UsageEvent`, then show migration history and labelled simulated records. |
-| Phase 3: Instrumentation and observability APIs | Not started | - | - | Show event ingestion, dashboard aggregation, and health behaviour. |
-| Phase 4: Minimal builder instrumentation | Not started | - | - | Generate an activity and show the corresponding database-backed metric update. |
-| Phase 5: Dashboard and reporting views | Not started | - | - | Main dashboard demonstration and highest-value visual evidence. |
+| Phase 3: Instrumentation and observability APIs | Complete | 25 September 2026 | Added validated live-event ingestion, database-backed dashboard aggregation, safe failures, non-blocking client helpers, and source disclosure. Populated, empty, invalid, and unavailable-database cases passed without changing the real data. | Show `201` ingestion, the summary response, safe `400`/`500` behaviour, and unchanged `/api/health`. |
+| Phase 4: Minimal builder instrumentation | Complete | 25 September 2026 | Added allowlisted page views/durations and non-blocking success/failure events around both unchanged standalone export flows. Clean browser testing proved valid exports, controlled failure, saved-activity correlation, and metrics-outage resilience. | Export either activity and show its live event and dashboard count update; explain that an instrumentation outage cannot block the download. |
+| Phase 5: Dashboard and reporting views | Complete | 25 September 2026 | Added the responsive `/dashboard` interface with all required metrics, health, alerts, comparisons, trends, recent records, source disclosure, builder links, and accessible loading/empty/error states. | Main visual anchor: show the populated cards, warning, source disclosure, reports, and live refresh after an export. |
 | Phase 6: Alerts and resilience | Not started | - | - | Demonstrate one clear warning or unusual operational state. |
 | Phase 7: Playwright | Not started | - | - | Show both required end-to-end workflows passing. |
 | Phase 8: JMeter | Not started | - | - | Show staged traffic results and explain the performance limit. |
@@ -1114,12 +1320,15 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Health response | HTTP 200 and healthy status | Baseline complete | `/api/health` returned `200` with `{"data":{"status":"ok"}}`; final A3 database-aware result pending |
 | Database integrity | Preserve existing activities, words, and phonemes | Complete | 3 activities, 7 words, 22 phonemes; integrity check `ok` |
 | Metrics and dashboard contract | Define statistics before implementation | Complete | `course-materials/md/Assessment3_Metrics_Contract.md` |
-| Dashboard screenshots | Show reporting interface and operational statistics | Pending | - |
+| Dashboard screenshots | Show reporting interface and operational statistics | Working verification complete | Desktop, narrow, populated, empty, and error renders reviewed in Phase 5; recapture persistent final evidence after Phase 10 integration |
 | Stored metric records | Prove persistence and retrieval | Complete | 31 `SIMULATED` events: 6 page views, 12 durations, 11 generation successes, and 2 generation failures |
 | UsageEvent migration | Prove safe forward-only persistence | Complete | `20260925024416_add_usage_events`; verified on existing, clean, and real databases |
 | Metrics contract validation | Reject malformed operational records | Complete | 4 valid payloads accepted and 8 invalid payloads rejected |
-| Generation instrumentation | Prove successful and failed generation counts | Pending | - |
-| Alert demonstration | Show an unusual state clearly | Pending | - |
+| Metric ingestion API | Validate and persist live operational events | Complete | `POST /api/metrics/events`; four event shapes returned `201`, while malformed and unsupported requests returned safe `400` responses |
+| Dashboard summary API | Aggregate required reporting statistics | Complete | `GET /api/dashboard/summary`; populated, zero-metric, and database-failure states verified using disposable databases |
+| Generation instrumentation | Prove successful and failed generation counts | Complete | Clean browser run stored 2 successes and 1 controlled failure; both successes included the selected saved-activity ID |
+| Page usage instrumentation | Provide page views and valid duration samples | Complete | Clean browser run stored 3 allowlisted page views and 2 duration samples at 4,098 ms and 1,474 ms |
+| Alert demonstration | Show an unusual state clearly | Complete | Populated dashboard visibly labels the seeded `GENERATION_FAILURES` warning and explains that 2 failures occurred in the seven-day window |
 | Playwright builder/CRUD test | Required builder use case | Pending | - |
 | Playwright generated activity test | Required user use case | Pending | - |
 | JMeter staged-load plan | Required multiple traffic levels | Pending | - |
@@ -1155,7 +1364,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 0.3 - baseline, Phase 1 contract, and Phase 2 persistence evidence confirmed.**
+Status: **Working draft 0.6 - baseline and Phases 1-5 evidence confirmed.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 

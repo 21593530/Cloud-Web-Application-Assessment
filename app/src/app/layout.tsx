@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Baloo_2, Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import SiteHeader from "@/components/layout/SiteHeader";
+import PageUsageTracker from "@/components/telemetry/PageUsageTracker";
 import "./globals.css";
 
 const themeBootstrapScript = `
@@ -55,6 +56,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
       <body className="min-h-full app-shell">
+        <PageUsageTracker />
         <SiteHeader />
 
         <main className="page-main">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createActivity, fetchActivities, removeActivity, updateActivity } from "@/lib/api/activities";
+import { recordMetricEvent } from "@/lib/api/metrics";
 import type { ActivityRecord } from "@/lib/domain/activity";
 
 type KeyState = "correct" | "present" | "absent" | "unknown";
@@ -496,16 +497,46 @@ export default function WordlePage() {
   };
 
   const exportHtml = () => {
-    const html = buildExportHtml(targetWord, englishWord, clue, maxGuesses);
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank", "noopener,noreferrer");
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "phonotrail-wordle.html";
-    link.click();
-    URL.revokeObjectURL(url);
-    setFeedback("Exported a standalone playable HTML Wordle.");
+    if (!targetTokens.length) {
+      setFeedback("Add at least one phoneme before exporting the Wordle.");
+      void recordMetricEvent({
+        eventType: "GENERATION_FAILURE",
+        activityType: "WORDLE",
+        pagePath: "/wordle",
+        failureCode: "EMPTY_ACTIVITY",
+        ...(selectedActivityId ? { activityId: selectedActivityId } : {}),
+      });
+      return;
+    }
+
+    try {
+      const html = buildExportHtml(targetWord, englishWord, clue, maxGuesses);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "phonotrail-wordle.html";
+      link.click();
+      URL.revokeObjectURL(url);
+      setFeedback("Exported a standalone playable HTML Wordle.");
+      void recordMetricEvent({
+        eventType: "GENERATION_SUCCESS",
+        activityType: "WORDLE",
+        pagePath: "/wordle",
+        ...(selectedActivityId ? { activityId: selectedActivityId } : {}),
+      });
+    } catch (error) {
+      console.error("Wordle HTML export failed", error);
+      setFeedback("The Wordle HTML export could not be completed.");
+      void recordMetricEvent({
+        eventType: "GENERATION_FAILURE",
+        activityType: "WORDLE",
+        pagePath: "/wordle",
+        failureCode: "GENERATION_ERROR",
+        ...(selectedActivityId ? { activityId: selectedActivityId } : {}),
+      });
+    }
   };
 
   return (

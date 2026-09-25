@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { createActivity, fetchActivities, removeActivity, updateActivity } from "@/lib/api/activities";
+import { recordMetricEvent } from "@/lib/api/metrics";
 import type { ActivityRecord } from "@/lib/domain/activity";
 import { tokensMatchInEitherDirection } from "@/lib/domain/phoneme";
 
@@ -615,16 +616,46 @@ export default function WordSearchPage() {
   };
 
   const exportHtml = () => {
-    const html = buildExportHtml(activeBoard, activeWords);
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank", "noopener,noreferrer");
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "phonotrail-word-search.html";
-    link.click();
-    URL.revokeObjectURL(url);
-    setFeedback("Styled worksheet exported and opened for review.");
+    if (!activeBoard.length || !activeWords.length) {
+      setFeedback("Generate a puzzle before exporting the Word Search.");
+      void recordMetricEvent({
+        eventType: "GENERATION_FAILURE",
+        activityType: "WORD_SEARCH",
+        pagePath: "/word-search",
+        failureCode: "EMPTY_ACTIVITY",
+        ...(selectedActivityId ? { activityId: selectedActivityId } : {}),
+      });
+      return;
+    }
+
+    try {
+      const html = buildExportHtml(activeBoard, activeWords);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "phonotrail-word-search.html";
+      link.click();
+      URL.revokeObjectURL(url);
+      setFeedback("Styled worksheet exported and opened for review.");
+      void recordMetricEvent({
+        eventType: "GENERATION_SUCCESS",
+        activityType: "WORD_SEARCH",
+        pagePath: "/word-search",
+        ...(selectedActivityId ? { activityId: selectedActivityId } : {}),
+      });
+    } catch (error) {
+      console.error("Word Search HTML export failed", error);
+      setFeedback("The Word Search HTML export could not be completed.");
+      void recordMetricEvent({
+        eventType: "GENERATION_FAILURE",
+        activityType: "WORD_SEARCH",
+        pagePath: "/word-search",
+        failureCode: "GENERATION_ERROR",
+        ...(selectedActivityId ? { activityId: selectedActivityId } : {}),
+      });
+    }
   };
 
   return (
