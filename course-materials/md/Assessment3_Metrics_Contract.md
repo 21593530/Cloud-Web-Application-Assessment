@@ -92,7 +92,7 @@ model UsageEvent {
 }
 ```
 
-The exact migration name will be generated in Phase 2. The existing models and initial migration must not be rewritten.
+Implemented in Phase 2 by `20260925024416_add_usage_events`. The existing models and initial migration were not rewritten.
 
 ## Controlled values
 
@@ -499,16 +499,16 @@ Assessment 3 requires simulated input records. Phase 2 will add a dedicated idem
 
 A dedicated script may delete only records where `source = SIMULATED` before re-seeding. It must not delete `LIVE` records or existing Activity, Word, or Phoneme data.
 
-### Proposed commands
+### Implemented commands
 
-The exact command names will be added in Phase 2:
+Phase 2 added these commands:
 
 ```text
 npm run db:seed:metrics
 npm run db:reset:simulated-metrics
 ```
 
-The reset command is optional if stable upserts make it unnecessary, but the implementation must remain deterministic.
+The seed uses stable upserts and the reset command deletes only `SIMULATED` records. Phase 2 verified the reset against a disposable database containing separate LIVE and TEST control records.
 
 ## Data flow
 

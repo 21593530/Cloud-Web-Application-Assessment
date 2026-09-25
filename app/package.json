@@ -11,8 +11,11 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "node prisma/seed.mjs",
+    "db:seed:metrics": "node prisma/seed-observability.mjs",
+    "db:reset:simulated-metrics": "node prisma/seed-observability.mjs --reset",
     "db:studio": "prisma studio",
     "validate:contract": "tsx scripts/validate-contract.ts",
+    "validate:metrics": "tsx scripts/validate-metrics-contract.ts",
     "validate:phonemes": "tsx scripts/validate-phoneme-matching.ts"
   },
   "prisma": {

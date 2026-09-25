@@ -47,3 +47,20 @@ model Phoneme {
   @@unique([wordId, position])
   @@index([wordId])
 }
+
+model UsageEvent {
+  id           String   @id @default(cuid())
+  eventType    String
+  activityType String?
+  activityId   String?
+  pagePath     String?
+  durationMs   Int?
+  failureCode  String?
+  source       String   @default("LIVE")
+  createdAt    DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([activityType, createdAt])
+  @@index([pagePath, createdAt])
+  @@index([source, createdAt])
+}

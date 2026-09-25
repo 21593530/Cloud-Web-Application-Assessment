@@ -394,6 +394,103 @@ Add the minimum persistent data structure required for Assessment 3 reporting wh
 - Existing builder data remains unchanged and usable.
 - Migration and rollback/recovery instructions are documented.
 
+### Phase 2 completion log - 25 September 2026
+
+Status: **Complete. Usage-event persistence, migration, simulated records, and validation are implemented.**
+
+Files added:
+
+- `app/prisma/migrations/20260925024416_add_usage_events/migration.sql`
+- `app/prisma/seed-observability.mjs`
+- `app/scripts/validate-metrics-contract.ts`
+- `app/src/lib/domain/metrics.ts`
+- `app/src/lib/validation/metrics.ts`
+
+Files changed:
+
+- `app/prisma/schema.prisma`
+- `app/package.json`
+- `app/.gitignore`
+- `app/prisma/prisma/dev.db`
+
+Implementation outcome:
+
+- Added the separate append-only `UsageEvent` model without changing `Activity`, `Word`, or `Phoneme`.
+- Added indexes for event type, activity type, page path, source, and creation time.
+- Added controlled constants for event types, event sources, tracked page paths, failure codes, and accepted duration limits.
+- Added a strict Zod input contract with cross-field validation for page views, page duration, successful generation, and failed generation events.
+- Client inputs cannot provide arbitrary metadata, event source, or timestamps.
+- Added `npm run validate:metrics`.
+- Added `npm run db:seed:metrics`.
+- Added `npm run db:reset:simulated-metrics`.
+- Kept the original Assessment 2 `seed.mjs` unchanged.
+- Added an ignored `app/prisma/backups/` location so local recovery databases cannot be committed or submitted accidentally.
+
+Migration safety and recovery evidence:
+
+- Created `app/prisma/backups/dev-pre-assessment3-phase2-20260925.db` before migration.
+- The backup is ignored by Git and is a local recovery artifact, not a submission file.
+- Pre-migration backup SHA-256: `D16E3F5DB3A34A58A92EA32FC4E5B819100FF8D73CF12AD3A7B56A07427FAB7C`.
+- Applied the new migration first to a disposable copy of the existing Assessment 2 database.
+- The disposable upgrade retained 3 activities, 7 words, and 22 phonemes and added an empty `UsageEvent` table.
+- Applied both migrations successfully to a clean disposable SQLite database.
+- An empty SQLite file had to exist before Prisma could deploy to the clean absolute Windows path; after creation, both migrations applied without a schema change.
+- Applied the already-proven migration to the real development database.
+- `npx prisma migrate status` reports two migrations and an up-to-date schema.
+- Post-migration database SHA-256: `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+- SQLite integrity check returns `ok` and the foreign-key check returns no violations.
+- Direct row comparison between the backup and migrated database confirms `Activity`, `Word`, and `Phoneme` are unchanged.
+- Ordered phonemes, including `tʃ`, `dʒ`, `iː`, `ɐ`, `ə`, and `ɪ`, remain intact and in their original positions.
+
+Recovery procedure:
+
+1. Stop the application before replacing a SQLite file.
+2. To recover while retaining Assessment 3 code, copy the ignored pre-migration backup over `app/prisma/prisma/dev.db`, then run `npx prisma migrate deploy` to recreate the `UsageEvent` table safely.
+3. To return fully to the pre-Phase 2 state, revert the Phase 2 source/migration commit and restore the same backup database.
+4. Re-run `prisma integrity_check`, the foreign-key check, migration status, and the existing application validation scripts after recovery.
+5. Never restore or replace the database while the application or Prisma Studio has the SQLite file open.
+
+Simulated record outcome:
+
+- The seed uses stable IDs and upsert operations.
+- Running the seed twice leaves the record total at 31 rather than duplicating data.
+- All 31 records have `source = SIMULATED`.
+- Event totals are:
+  - 6 `PAGE_VIEW` events.
+  - 12 `PAGE_DURATION` events.
+  - 11 `GENERATION_SUCCESS` events.
+  - 2 `GENERATION_FAILURE` events.
+- Wordle has 6 successful and 1 failed generation attempt.
+- Word Search has 5 successful and 1 failed generation attempt.
+- The 12 page-duration samples average 74,916.67 ms, with a minimum of 26,000 ms and maximum of 136,000 ms.
+- Simulated timestamps cover the previous seven days and no event is dated in the future.
+- The reset command was verified against a disposable database. It removed exactly 31 simulated records while preserving separate LIVE and TEST control records and all legacy activity data.
+- The real demonstration database retains the 31 simulated records for later dashboard work.
+
+Validation and regression evidence:
+
+- Prisma schema validation passed.
+- Prisma Client generation passed.
+- Metrics contract validation accepted 4 representative valid payloads and rejected 8 invalid payloads.
+- Invalid cases cover short duration, missing duration, mismatched builder path, forbidden failure code, missing failure code, unsupported path, client-supplied source, and arbitrary metadata.
+- The future public write endpoint will use this schema in Phase 3. Direct Prisma access remains trusted internal code rather than an unvalidated public write path.
+- Focused ESLint checks passed for every new JavaScript and TypeScript file.
+- Existing activity contract validation passed.
+- Existing multi-character phoneme regression validation passed.
+- The Next.js production build and TypeScript checks passed.
+- No builder, export, existing API route, health route, activity repository, or visual component was changed.
+
+Non-blocking note:
+
+- Prisma reports that `package.json#prisma` configuration will be deprecated in Prisma 7. The project remains on Prisma 6.16.3, so this warning does not affect Assessment 3 and no unrelated configuration migration was introduced.
+
+Video evidence/narration value:
+
+- The schema can be shown with the original three models intact and `UsageEvent` visibly separated underneath them.
+- The migration history proves the reporting model was added forward-only instead of rebuilding the Assessment 2 database.
+- The deterministic seed provides honest, labelled simulated evidence: 31 records, 13 generation attempts, and 12 page-duration samples.
+- A concise narration point is: "I preserved the Assessment 2 activity schema and added a separate usage-event table, so reporting history cannot interfere with phoneme or activity persistence."
+
 ---
 
 ## Phase 3: Instrumentation and observability APIs
@@ -859,9 +956,9 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 
 ### Baseline protection
 
-- [ ] Assessment 1 and Assessment 2 workflows have been regression-tested.
-- [ ] No established behaviour was changed without approval.
-- [ ] Existing activity and phoneme records survive the Assessment 3 migration.
+- [x] Assessment 1 and Assessment 2 workflows have been regression-tested.
+- [x] No established behaviour was changed without approval.
+- [x] Existing activity and phoneme records survive the Assessment 3 migration.
 
 ### Dashboard and reporting
 
@@ -877,10 +974,10 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 
 ### Persistence and observability
 
-- [ ] Assessment 3 metric records are stored in the database.
-- [ ] Simulated records are deterministic and documented.
+- [x] Assessment 3 metric records are stored in the database.
+- [x] Simulated records are deterministic and documented.
 - [ ] Metric ingestion is validated.
-- [ ] `/health` returns HTTP 200 in the verified environment.
+- [ ] `/api/health` returns HTTP 200 in the final verified environment.
 - [ ] Dashboard aggregation handles empty and populated data.
 - [ ] Instrumentation failure cannot break the original builders.
 
@@ -995,7 +1092,7 @@ Each phase update should record:
 |---|---|---|---|---|
 | Pre-Phase: Baseline and fatal-flaw gate | Complete | 16 September 2026 | No fatal A1/A2 flaw found. Build, routes, validation, database integrity, health, and disposable CRUD checks completed without changing established behaviour. | Establishes that Assessment 3 extends a stable full-stack baseline. Detailed evidence is in the Pre-Phase completion log above. |
 | Phase 1: Contract and metric design | Complete | 23 September 2026 | Defined the `UsageEvent` contract, metric formulas, validation rules, dashboard response, alerts, simulated data strategy, privacy limits, and minimal implementation touchpoints. No application or database code changed. | Explain why current activity counts remain authoritative in `Activity`, while operational usage is stored separately and safely. |
-| Phase 2: Database model and simulated records | Not started | - | - | Show the added Prisma model, migration, and representative stored metric records. |
+| Phase 2: Database model and simulated records | Complete | 25 September 2026 | Added `UsageEvent`, a forward-only migration, strict metric validation, an idempotent 31-record simulated dataset, reset tooling, and verified recovery. Legacy activity rows and ordered phonemes are unchanged. | Show the original models preserved beside `UsageEvent`, then show migration history and labelled simulated records. |
 | Phase 3: Instrumentation and observability APIs | Not started | - | - | Show event ingestion, dashboard aggregation, and health behaviour. |
 | Phase 4: Minimal builder instrumentation | Not started | - | - | Generate an activity and show the corresponding database-backed metric update. |
 | Phase 5: Dashboard and reporting views | Not started | - | - | Main dashboard demonstration and highest-value visual evidence. |
@@ -1018,7 +1115,9 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Database integrity | Preserve existing activities, words, and phonemes | Complete | 3 activities, 7 words, 22 phonemes; integrity check `ok` |
 | Metrics and dashboard contract | Define statistics before implementation | Complete | `course-materials/md/Assessment3_Metrics_Contract.md` |
 | Dashboard screenshots | Show reporting interface and operational statistics | Pending | - |
-| Stored metric records | Prove persistence and retrieval | Pending | - |
+| Stored metric records | Prove persistence and retrieval | Complete | 31 `SIMULATED` events: 6 page views, 12 durations, 11 generation successes, and 2 generation failures |
+| UsageEvent migration | Prove safe forward-only persistence | Complete | `20260925024416_add_usage_events`; verified on existing, clean, and real databases |
+| Metrics contract validation | Reject malformed operational records | Complete | 4 valid payloads accepted and 8 invalid payloads rejected |
 | Generation instrumentation | Prove successful and failed generation counts | Pending | - |
 | Alert demonstration | Show an unusual state clearly | Pending | - |
 | Playwright builder/CRUD test | Required builder use case | Pending | - |
@@ -1056,7 +1155,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 0.2 - baseline and Phase 1 contract confirmed; implementation results pending.**
+Status: **Working draft 0.3 - baseline, Phase 1 contract, and Phase 2 persistence evidence confirmed.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
