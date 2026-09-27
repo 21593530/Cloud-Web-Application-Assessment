@@ -14,6 +14,7 @@ const validEvents = [
 
 const invalidEvents = [
   { eventType: "PAGE_DURATION", pagePath: "/wordle", durationMs: 999 },
+  { eventType: "PAGE_DURATION", pagePath: "/wordle", durationMs: 1_800_001 },
   { eventType: "PAGE_DURATION", pagePath: "/wordle" },
   { eventType: "GENERATION_SUCCESS", pagePath: "/word-search", activityType: "WORDLE" },
   { eventType: "GENERATION_SUCCESS", pagePath: "/wordle", activityType: "WORDLE", failureCode: "UNKNOWN" },

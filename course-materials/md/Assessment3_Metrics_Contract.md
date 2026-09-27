@@ -209,6 +209,7 @@ The Zod object must be strict so unsupported keys are rejected.
 - No client-supplied event timestamp is accepted.
 - No client-supplied event source is accepted.
 - No raw activity data or arbitrary metadata is accepted.
+- The complete UTF-8 request body is limited to 4,096 bytes. Declared and streamed payloads above this limit are rejected before validation.
 - JSON must be valid and the request must use the existing safe error-response convention.
 
 ### Success response
@@ -230,6 +231,7 @@ HTTP `201 Created`
 |---|---:|---|
 | Invalid JSON | 400 | `INVALID_JSON` |
 | Invalid or inconsistent fields | 400 | `VALIDATION_ERROR` |
+| Request body exceeds 4,096 bytes | 413 | `PAYLOAD_TOO_LARGE` |
 | Unexpected database failure | 500 | `DATABASE_ERROR` |
 
 The response must not expose Prisma details, SQL, stack traces, or internal paths.
@@ -413,7 +415,7 @@ The ten most recent non-test `UsageEvent` records. Responses exclude failure det
 
 ### Source counts
 
-Counts of included `LIVE` and `SIMULATED` event records. The dashboard uses this to disclose when simulated evidence contributes to the displayed report.
+Counts of valid included `LIVE` and `SIMULATED` event records. The dashboard uses this to disclose when simulated evidence contributes to the displayed report. Phase 6 hardened aggregation so malformed or partial rows inserted outside the public API are excluded consistently from source totals, recent events, and calculated metrics.
 
 ## Alert rules
 

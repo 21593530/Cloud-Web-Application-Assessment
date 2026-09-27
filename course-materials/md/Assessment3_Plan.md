@@ -632,7 +632,7 @@ Connect the established application actions to Assessment 3 reporting without re
 
 Status: **Complete. Both builders and approved application routes now emit non-blocking, validated usage events.**
 
-File added:
+Files added:
 
 - `app/src/components/telemetry/PageUsageTracker.tsx`
 
@@ -859,6 +859,107 @@ Make unusual states visible and ensure the new reporting layer fails safely.
 - Alerts are meaningful, reproducible, and easy to explain in the video.
 - Dashboard failures cannot break the builders.
 - Historical reporting remains understandable after activity deletion.
+
+### Phase 6 completion log - 27 September 2026
+
+Status: **Complete. Alert policy, input limits, aggregation resilience, retry recovery, and historical reporting are hardened and verified.**
+
+File added:
+
+- `app/src/lib/server/dashboard-alerts.ts`
+- `app/scripts/validate-dashboard-alerts.ts`
+
+Files changed:
+
+- `app/src/app/api/metrics/events/route.ts`
+- `app/src/lib/domain/metrics.ts`
+- `app/src/lib/server/metrics.ts`
+- `app/scripts/validate-metrics-contract.ts`
+- `app/package.json`
+- `course-materials/md/Assessment3_Metrics_Contract.md`
+
+Implementation outcome:
+
+- Extracted the server alert policy into a focused pure module without changing any alert code, severity, title, message, or threshold defined in Phase 1.
+- Added `npm run validate:alerts` with eight reproducible policy and boundary cases.
+- Added a 4,096-byte UTF-8 limit for the complete public metric-event request body.
+- Requests declared above the limit and streamed requests that cross the limit both return HTTP `413` with `PAYLOAD_TOO_LARGE`.
+- The limiter stops reading a streamed body once the limit is exceeded, before JSON parsing or database validation.
+- Retained strict Zod field and cross-field validation after the body-size gate.
+- Hardened server aggregation so calculated metrics accept only recognised event shapes, matching generation type/path pairs, controlled failure codes, tracked page paths, and durations from 1,000 to 1,800,000 ms.
+- Invalid or partial rows inserted outside the public endpoint are excluded consistently from generation totals, duration reports, recent events, and live/simulated source disclosure.
+- Current saved-activity queries remain independent from historical usage events.
+- Updated the approved metrics contract with the payload limit, safe `413` response, and valid-record source-count definition.
+
+Alert-policy evidence:
+
+- The healthy policy case returned no alerts.
+- No activities plus no duration samples returned `NO_ACTIVITIES` and `NO_DURATION_DATA`.
+- A database retaining only Word Search activities returned `NO_WORDLE_ACTIVITIES`.
+- A database retaining only Wordle activities returned `NO_WORD_SEARCH_ACTIVITIES`.
+- Recent failures returned `GENERATION_FAILURES`.
+- Five attempts at a 79.9% rate triggered `LOW_GENERATION_SUCCESS_RATE`.
+- A low rate with only four attempts did not trigger the low-rate warning because the documented minimum sample size is five.
+- Exactly 80% did not trigger the low-rate warning because the threshold is strictly below 80%.
+- A database-level low-rate scenario with 1 success and 4 failures produced a 20% rate and both `GENERATION_FAILURES` and `LOW_GENERATION_SUCCESS_RATE`.
+- A database-level healthy scenario with 5 successes, both activity types, and one valid duration sample returned no alerts.
+- The normal 31-record simulated dataset retained its expected single `GENERATION_FAILURES` warning.
+
+Input and legacy-data protection evidence:
+
+- Invalid JSON returned HTTP `400` `INVALID_JSON`.
+- A duration of 1,800,001 ms returned HTTP `400` `VALIDATION_ERROR`.
+- Arbitrary metadata and an unsupported event type returned HTTP `400` `VALIDATION_ERROR`.
+- A 5,000-character metadata payload returned HTTP `413` `PAYLOAD_TOO_LARGE` when sent normally and when streamed without a `Content-Length` header.
+- Before and after all rejected requests, the disposable database remained at 3 activities, 7 words, 22 phonemes, and 31 events with the same most-recent activity timestamp.
+- A valid request through the hardened route still returned HTTP `201` with `recorded: true`.
+- The metrics contract now accepts 4 representative valid events and rejects 9 invalid events, including values above both duration boundaries.
+
+Partial and malformed data evidence:
+
+- Five deliberately invalid direct database records covered an unknown event type, oversized duration, partial generation, mismatched generation type/path, and a page view carrying a forbidden duration.
+- The raw copied database contained those five rows, but the hardened summary remained at 11 successes, 2 failures, 12 duration samples, and a 74,917 ms average.
+- None of the five invalid IDs appeared in recent events.
+- Source disclosure remained 0 valid live and 31 valid simulated events rather than misleadingly counting excluded rows.
+- The populated summary continued returning HTTP `200` and the expected `GENERATION_FAILURES` warning.
+
+Historical reporting after deletion:
+
+- A disposable Wordle activity received a live `GENERATION_SUCCESS` linked by its activity ID.
+- Before deletion, the copied database reported 3 current activities, 2 Wordle activities, 12 successes, 2 failures, and 14 attempts.
+- Deleting that activity returned HTTP `204` and correctly cascaded only its saved words and phonemes.
+- After deletion, current totals changed to 2 activities and 1 Wordle, while historical generation totals remained at 12 successes, 2 failures, and 14 attempts.
+- The historical event remained stored with the deleted activity ID and remained understandable in the API as a Wordle generation success without exposing the raw activity ID to the dashboard.
+
+Retry and safe-failure evidence:
+
+- Headless Edge forced the first `/api/dashboard/summary` request to fail at the network layer.
+- The dashboard displayed `Reporting data is unavailable`, a safe `Failed to fetch` message, `Try again`, `Open Wordle`, and `Open Word Search`.
+- The retry button was activated from the keyboard after the interception was removed.
+- The same page recovered to `Operational dashboard`, `Application healthy`, `Database connected`, all eight metric cards, and the expected labelled warning.
+- Against an unmigrated disposable database, summary and metric writes returned safe HTTP `500` `DATABASE_ERROR` messages containing no Prisma code, table name, stack, or filesystem path.
+- Detailed Prisma `P2021` context remained available only in server logs.
+- The unchanged `/api/health` route returned HTTP `200`, and both builder documents still returned HTTP `200` while Assessment 3 database operations failed safely.
+- Phase 4 already proved that a metrics-request outage cannot prevent either original HTML export; Phase 6 confirms the reporting UI also fails and recovers independently.
+
+Regression and safety evidence:
+
+- `npm run validate:alerts` passed 8 alert and threshold cases.
+- `npm run validate:metrics` passed with 4 valid and 9 invalid event cases.
+- `npm run validate:contract` passed.
+- `npm run validate:phonemes` passed for forward, reverse, and split-token cases.
+- Focused ESLint passed for every Phase 6 TypeScript file.
+- The production build and TypeScript checks passed with all existing and Assessment 3 routes.
+- Every mutation, deletion, malformed row, unavailable-database check, and browser retry used isolated database copies and temporary profiles. All temporary artifacts were removed afterward.
+- The real database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+- The real database remains at 3 activities, 7 words, 22 phonemes, and 31 simulated events with zero live test events.
+- No builder, standalone export, activity API contract, Prisma schema, migration, or legacy stored record was changed.
+
+Video evidence/narration value:
+
+- The existing seeded generation-failure warning is the clearest repeatable unusual state to show in the final video.
+- The warning is defensible because it comes from disclosed simulated input and a documented seven-day server rule, not a manually styled demonstration message.
+- A concise narration point is: "Alert rules are evaluated consistently on the server, malformed or oversized events are rejected without touching activity data, and the dashboard provides a safe retry while the original builders remain independent."
 
 ---
 
@@ -1302,7 +1403,7 @@ Each phase update should record:
 | Phase 3: Instrumentation and observability APIs | Complete | 25 September 2026 | Added validated live-event ingestion, database-backed dashboard aggregation, safe failures, non-blocking client helpers, and source disclosure. Populated, empty, invalid, and unavailable-database cases passed without changing the real data. | Show `201` ingestion, the summary response, safe `400`/`500` behaviour, and unchanged `/api/health`. |
 | Phase 4: Minimal builder instrumentation | Complete | 25 September 2026 | Added allowlisted page views/durations and non-blocking success/failure events around both unchanged standalone export flows. Clean browser testing proved valid exports, controlled failure, saved-activity correlation, and metrics-outage resilience. | Export either activity and show its live event and dashboard count update; explain that an instrumentation outage cannot block the download. |
 | Phase 5: Dashboard and reporting views | Complete | 25 September 2026 | Added the responsive `/dashboard` interface with all required metrics, health, alerts, comparisons, trends, recent records, source disclosure, builder links, and accessible loading/empty/error states. | Main visual anchor: show the populated cards, warning, source disclosure, reports, and live refresh after an export. |
-| Phase 6: Alerts and resilience | Not started | - | - | Demonstrate one clear warning or unusual operational state. |
+| Phase 6: Alerts and resilience | Complete | 27 September 2026 | Added repeatable alert-policy checks, a 4 KiB request ceiling, valid-record aggregation filters, safe retry recovery, and historical-event retention after activity deletion. All destructive checks used disposable data. | Show the labelled generation-failure warning and explain that malformed data is rejected or excluded while builders and historical reporting remain safe. |
 | Phase 7: Playwright | Not started | - | - | Show both required end-to-end workflows passing. |
 | Phase 8: JMeter | Not started | - | - | Show staged traffic results and explain the performance limit. |
 | Phase 9: Lighthouse | Not started | - | - | Show accessibility result and a design decision influenced by it. |
@@ -1323,12 +1424,15 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Dashboard screenshots | Show reporting interface and operational statistics | Working verification complete | Desktop, narrow, populated, empty, and error renders reviewed in Phase 5; recapture persistent final evidence after Phase 10 integration |
 | Stored metric records | Prove persistence and retrieval | Complete | 31 `SIMULATED` events: 6 page views, 12 durations, 11 generation successes, and 2 generation failures |
 | UsageEvent migration | Prove safe forward-only persistence | Complete | `20260925024416_add_usage_events`; verified on existing, clean, and real databases |
-| Metrics contract validation | Reject malformed operational records | Complete | 4 valid payloads accepted and 8 invalid payloads rejected |
-| Metric ingestion API | Validate and persist live operational events | Complete | `POST /api/metrics/events`; four event shapes returned `201`, while malformed and unsupported requests returned safe `400` responses |
+| Metrics contract validation | Reject malformed operational records | Complete | 4 valid payloads accepted and 9 invalid payloads rejected, including both duration boundaries |
+| Metric ingestion API | Validate and persist live operational events | Complete | `POST /api/metrics/events`; valid records return `201`, malformed/unsupported records return safe `400`, and bodies above 4,096 bytes return safe `413` |
 | Dashboard summary API | Aggregate required reporting statistics | Complete | `GET /api/dashboard/summary`; populated, zero-metric, and database-failure states verified using disposable databases |
 | Generation instrumentation | Prove successful and failed generation counts | Complete | Clean browser run stored 2 successes and 1 controlled failure; both successes included the selected saved-activity ID |
 | Page usage instrumentation | Provide page views and valid duration samples | Complete | Clean browser run stored 3 allowlisted page views and 2 duration samples at 4,098 ms and 1,474 ms |
 | Alert demonstration | Show an unusual state clearly | Complete | Populated dashboard visibly labels the seeded `GENERATION_FAILURES` warning and explains that 2 failures occurred in the seven-day window |
+| Alert policy validation | Make warning thresholds reproducible | Complete | `npm run validate:alerts` passed 8 healthy, empty, missing-type, failure, minimum-sample, and 80% boundary cases |
+| Reporting resilience | Exclude malformed rows and recover safely | Complete | Five partial/direct rows were excluded from metrics and source totals; keyboard retry recovered after one forced summary failure |
+| Historical event retention | Preserve usage history after deletion | Complete | Deleting a disposable Wordle changed current activity totals but retained its linked generation event and aggregate counts |
 | Playwright builder/CRUD test | Required builder use case | Pending | - |
 | Playwright generated activity test | Required user use case | Pending | - |
 | JMeter staged-load plan | Required multiple traffic levels | Pending | - |
@@ -1364,7 +1468,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 0.6 - baseline and Phases 1-5 evidence confirmed.**
+Status: **Working draft 0.7 - baseline and Phases 1-6 evidence confirmed.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 

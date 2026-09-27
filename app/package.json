@@ -15,6 +15,7 @@
     "db:reset:simulated-metrics": "node prisma/seed-observability.mjs --reset",
     "db:studio": "prisma studio",
     "validate:contract": "tsx scripts/validate-contract.ts",
+    "validate:alerts": "tsx scripts/validate-dashboard-alerts.ts",
     "validate:metrics": "tsx scripts/validate-metrics-contract.ts",
     "validate:phonemes": "tsx scripts/validate-phoneme-matching.ts"
   },

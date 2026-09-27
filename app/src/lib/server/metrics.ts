@@ -1,15 +1,20 @@
 import type { ActivityType, Difficulty } from "@/lib/domain/activity";
 import type {
-  DashboardAlert,
   DashboardSummary,
   MetricEventType,
 } from "@/lib/domain/metrics";
+import {
+  GENERATION_FAILURE_CODES,
+  MAX_PAGE_DURATION_MS,
+  MIN_PAGE_DURATION_MS,
+  TRACKED_PAGE_PATHS,
+} from "@/lib/domain/metrics";
 import type { MetricEventInput } from "@/lib/validation/metrics";
+import type { Prisma } from "@prisma/client";
+import { buildDashboardAlerts } from "@/lib/server/dashboard-alerts";
 import { prisma } from "@/lib/server/prisma";
 
 const INCLUDED_EVENT_SOURCES = ["LIVE", "SIMULATED"];
-const GENERATION_EVENT_TYPES = ["GENERATION_SUCCESS", "GENERATION_FAILURE"];
-
 export async function createMetricEvent(input: MetricEventInput) {
   return prisma.usageEvent.create({
     data: {
@@ -57,78 +62,33 @@ function buildGenerationTrend(
   return trend;
 }
 
-type AlertInput = {
-  totalActivities: number;
-  wordleActivities: number;
-  wordSearchActivities: number;
-  durationSamples: number;
-  recentGenerationFailures: number;
-  generationAttempts: number;
-  successRate: number | null;
-};
-
-function buildAlerts(input: AlertInput): DashboardAlert[] {
-  const alerts: DashboardAlert[] = [];
-
-  if (input.totalActivities === 0) {
-    alerts.push({
-      code: "NO_ACTIVITIES",
-      severity: "WARNING",
-      title: "No saved activities",
-      message: "No saved activities are currently available for generation.",
-    });
-  } else {
-    if (input.wordleActivities === 0) {
-      alerts.push({
-        code: "NO_WORDLE_ACTIVITIES",
-        severity: "INFO",
-        title: "No saved Wordle activities",
-        message: "Create a Wordle configuration to include it in activity reporting.",
-      });
-    }
-    if (input.wordSearchActivities === 0) {
-      alerts.push({
-        code: "NO_WORD_SEARCH_ACTIVITIES",
-        severity: "INFO",
-        title: "No saved Word Search activities",
-        message: "Create a Word Search configuration to include it in activity reporting.",
-      });
-    }
-  }
-
-  if (input.durationSamples === 0) {
-    alerts.push({
-      code: "NO_DURATION_DATA",
-      severity: "INFO",
-      title: "No page-duration samples",
-      message: "Average time on page will appear after usage samples are recorded.",
-    });
-  }
-
-  if (input.recentGenerationFailures > 0) {
-    alerts.push({
-      code: "GENERATION_FAILURES",
-      severity: "WARNING",
-      title: "Recent generation failures",
-      message: `${input.recentGenerationFailures} failed generation attempt${input.recentGenerationFailures === 1 ? "" : "s"} occurred in the last seven days.`,
-    });
-  }
-
-  if (input.generationAttempts >= 5 && input.successRate !== null && input.successRate < 80) {
-    alerts.push({
-      code: "LOW_GENERATION_SUCCESS_RATE",
-      severity: "WARNING",
-      title: "Generation success rate is below target",
-      message: `The current generation success rate is ${input.successRate.toFixed(1)}%, below the documented 80% threshold.`,
-    });
-  }
-
-  return alerts;
-}
-
 export async function getDashboardSummary(): Promise<DashboardSummary> {
   const sevenDayStart = startOfSevenDayWindow();
   const includedSourceFilter = { in: INCLUDED_EVENT_SOURCES };
+  const validGenerationFilter: Prisma.UsageEventWhereInput = {
+    source: includedSourceFilter,
+    OR: [
+      { eventType: "GENERATION_SUCCESS", activityType: "WORDLE", pagePath: "/wordle", durationMs: null, failureCode: null },
+      { eventType: "GENERATION_SUCCESS", activityType: "WORD_SEARCH", pagePath: "/word-search", durationMs: null, failureCode: null },
+      { eventType: "GENERATION_FAILURE", activityType: "WORDLE", pagePath: "/wordle", durationMs: null, failureCode: { in: [...GENERATION_FAILURE_CODES] } },
+      { eventType: "GENERATION_FAILURE", activityType: "WORD_SEARCH", pagePath: "/word-search", durationMs: null, failureCode: { in: [...GENERATION_FAILURE_CODES] } },
+    ],
+  };
+  const validDurationFilter: Prisma.UsageEventWhereInput = {
+    source: includedSourceFilter,
+    eventType: "PAGE_DURATION",
+    pagePath: { in: [...TRACKED_PAGE_PATHS] },
+    durationMs: { gte: MIN_PAGE_DURATION_MS, lte: MAX_PAGE_DURATION_MS },
+    failureCode: null,
+  };
+  const validEventFilter: Prisma.UsageEventWhereInput = {
+    source: includedSourceFilter,
+    OR: [
+      { eventType: "PAGE_VIEW", pagePath: { in: [...TRACKED_PAGE_PATHS] }, durationMs: null, failureCode: null },
+      validDurationFilter,
+      validGenerationFilter,
+    ],
+  };
 
   const [
     activityCounts,
@@ -155,37 +115,29 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     }),
     prisma.usageEvent.groupBy({
       by: ["eventType", "activityType"],
-      where: {
-        source: includedSourceFilter,
-        eventType: { in: GENERATION_EVENT_TYPES },
-      },
+      where: validGenerationFilter,
       _count: { _all: true },
     }),
     prisma.usageEvent.aggregate({
-      where: { source: includedSourceFilter, eventType: "PAGE_DURATION" },
+      where: validDurationFilter,
       _avg: { durationMs: true },
       _count: { durationMs: true },
     }),
     prisma.usageEvent.groupBy({
       by: ["pagePath"],
-      where: {
-        source: includedSourceFilter,
-        eventType: "PAGE_DURATION",
-        pagePath: { not: null },
-      },
+      where: validDurationFilter,
       _avg: { durationMs: true },
       _count: { durationMs: true },
     }),
     prisma.usageEvent.findMany({
       where: {
-        source: includedSourceFilter,
-        eventType: { in: GENERATION_EVENT_TYPES },
+        ...validGenerationFilter,
         createdAt: { gte: sevenDayStart },
       },
       select: { eventType: true, createdAt: true },
     }),
     prisma.usageEvent.findMany({
-      where: { source: includedSourceFilter },
+      where: validEventFilter,
       orderBy: { createdAt: "desc" },
       take: 10,
       select: {
@@ -199,7 +151,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     }),
     prisma.usageEvent.groupBy({
       by: ["source"],
-      where: { source: includedSourceFilter },
+      where: validEventFilter,
       _count: { _all: true },
     }),
   ]);
@@ -289,7 +241,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       live: sourceGroups.find((group) => group.source === "LIVE")?._count._all ?? 0,
       simulated: sourceGroups.find((group) => group.source === "SIMULATED")?._count._all ?? 0,
     },
-    alerts: buildAlerts({
+    alerts: buildDashboardAlerts({
       totalActivities,
       wordleActivities,
       wordSearchActivities,

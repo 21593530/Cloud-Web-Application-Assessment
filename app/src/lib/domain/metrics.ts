@@ -34,6 +34,7 @@ export type GenerationFailureCode = (typeof GENERATION_FAILURE_CODES)[number];
 
 export const MIN_PAGE_DURATION_MS = 1_000;
 export const MAX_PAGE_DURATION_MS = 30 * 60 * 1_000;
+export const MAX_METRIC_REQUEST_BYTES = 4 * 1_024;
 
 export type DashboardAlert = {
   code: string;
