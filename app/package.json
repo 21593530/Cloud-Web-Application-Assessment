@@ -17,7 +17,10 @@
     "validate:contract": "tsx scripts/validate-contract.ts",
     "validate:alerts": "tsx scripts/validate-dashboard-alerts.ts",
     "validate:metrics": "tsx scripts/validate-metrics-contract.ts",
-    "validate:phonemes": "tsx scripts/validate-phoneme-matching.ts"
+    "validate:phonemes": "tsx scripts/validate-phoneme-matching.ts",
+    "test:e2e:prepare": "node scripts/prepare-playwright-db.mjs",
+    "test:e2e": "npm run test:e2e:prepare && playwright test",
+    "test:e2e:report": "playwright show-report"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
@@ -30,6 +33,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
