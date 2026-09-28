@@ -1409,6 +1409,39 @@ Make the Assessment 3 implementation understandable and professionally reproduci
 - References and AI acknowledgement are accurate.
 - Git history provides visible evidence of staged work.
 
+### Phase 11 completion log - 28 September 2026
+
+Status: **Documentation complete locally; final GitHub push remains a deliberate user action.**
+
+Files added or changed:
+
+- Reworked the root `README.md` around the complete Assessment 1-to-3 project story, architecture, setup, routes, metric definitions, validation, Docker, evidence, and limitations.
+- Updated `app/README.md` as a concise application/developer index with quick-start and command guidance.
+- Updated `app/REFERENCES.md` with an accurate Assessment 2/3 AI acknowledgement and nine APA 7-style primary industry/standards references.
+- Added `app/verification/Assessment3_GitHub_Evidence.md` with the refreshed branch state, focused Assessment 3 commit sequence, and final video checklist.
+
+Documentation and evidence decisions:
+
+- Setup uses the locked dependency tree, committed Prisma migrations, idempotent activity seed, and deterministic simulated metric seed.
+- The README explicitly warns that destructive tests must use the disposable Playwright database or a disposable Docker volume, not the demonstration database.
+- All routes, APIs, metric definitions, test commands, Docker commands, evidence locations, and measured final results are linked from the repository homepage.
+- Known limitations are disclosed, including SQLite scope, best-effort duration sampling, local load-test limits, Lighthouse manual checks, the two preserved A1/2 lint findings, and the approval-gated Next.js patch.
+- The AI acknowledgement names GitHub Copilot, Claude Sonnet 4.5, and OpenAI Codex, describes their actual roles, and explains the student's review and empirical verification process.
+- References were checked against primary Next.js, React, Prisma, Playwright, JMeter, Lighthouse, Docker, WCAG 2.2, and Zod documentation.
+
+Git/GitHub audit:
+
+- `git fetch --prune origin` completed successfully.
+- Local `main` is `0` commits behind and `1` commit ahead of `origin/main` before the Phase 11 documentation commit.
+- The earlier README divergence is already resolved by merge commit `7e38d3c`; no rebase, merge, force push, or history rewrite is required.
+- The focused Assessment 3 history is documented from `951dbae` through `66f2318`.
+- GitHub currently shows work through Phase 9 (`50f4862`). After committing Phase 11, a normal `git push origin main` is still required so Phase 10 and Phase 11 appear on the remote homepage. No remote state was changed without explicit authorisation.
+
+Video evidence/narration value:
+
+- Show the updated GitHub README, then open the commit history and move quickly through the contract, persistence, dashboard, resilience, Playwright, JMeter, Lighthouse, Docker, and documentation commits.
+- A concise narration point is: "The repository homepage now documents the complete data flow, reproducible setup, testing evidence, references, and limitations. The commit history separates the metric contract, persistence, reporting, resilience, three testing tools, and final Docker verification into focused stages."
+
 ---
 
 ## Phase 12: Video, evidence package, and final submission
@@ -1529,8 +1562,8 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - [x] Docker build and runtime verification pass.
 - [ ] Existing CRUD and both standalone exports still work.
 - [ ] README documents Assessment 3 setup, metrics, tests, and evidence.
-- [ ] AI acknowledgement is current.
-- [ ] At least five APA 7 references are included.
+- [x] AI acknowledgement is current.
+- [x] At least five APA 7 references are included.
 - [ ] GitHub history shows focused Assessment 3 progress.
 - [ ] Video is between 3 and 8 minutes and covers all required evidence.
 - [ ] Final zip excludes `node_modules`, `.next`, secrets, and unnecessary artifacts.
@@ -1632,7 +1665,7 @@ Each phase update should record:
 | Phase 8: JMeter | Complete | 28 September 2026 | Added a read-only JMX plan and ran 1, 10, 100, 1,000, and 10,000 requests per endpoint against a disposable production database. All 33,333 samples returned 200 with zero errors; the final stage reached 1,492.76 req/s and 3 ms aggregate p95. | Show the staged plan, concise table, and final HTML dashboard; explain that the local read-only failure point was not reached and results are not a production-capacity claim. |
 | Phase 9: Lighthouse | Complete | 28 September 2026 | The dashboard baseline scored 96 and exposed two low-contrast amber text treatments. Theme-aware text colours raised all four light/dark combinations above 6:1; the final dashboard and unchanged Wordle route each scored 100. | Show the 96-to-100 result, the exact contrast finding, and the small CSS decision it produced. |
 | Phase 10: Full verification and Docker regression | Complete with documented exceptions | 28 September 2026 | Local and Docker builds, validators, Playwright, migrations, seeded reporting, health, CRUD, both exports, volume restart, and final Lighthouse all passed. Only two preserved A1/2 lint findings and the approval-gated Next.js patch remain open. | Show clean-volume migration, `verify:docker`, health 200, persisted dashboard data, and Lighthouse 100. |
-| Phase 11: Documentation and GitHub | Not started | - | - | Show repository homepage, focused commits, references, and reproducible instructions. |
+| Phase 11: Documentation and GitHub | Complete locally; push pending | 28 September 2026 | Updated both READMEs, AI acknowledgement, nine APA 7 references, known limitations, reproducible commands, and a Git/GitHub evidence audit. Local history is focused and 0 behind/1 ahead before the Phase 11 commit. | Show the updated homepage and focused Assessment 3 commits after the final normal push. |
 | Phase 12: Video and submission | Not started | - | - | Final recording, timing, packaging, and upload checks. |
 
 ## Evidence ledger
@@ -1664,7 +1697,7 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Lighthouse baseline | Identify accessibility issues | Complete | `app/lighthouse/raw-results/2026-09-28/dashboard-baseline.report.html`; score 96, with one weighted `color-contrast` failure affecting warning and simulated-source labels |
 | Lighthouse final result | Show final score and response to findings | Complete | `app/lighthouse/results/Assessment3_Lighthouse_Results.md`; dashboard 100 and unchanged Wordle route 100, with no scored failures or run warnings |
 | Docker final regression | Demonstrate final integrated runtime | Complete | `app/verification/Assessment3_Phase10_Verification.md`; clean migrations, six UI routes, health 200, CRUD, both exports, reporting update, and named-volume restart passed |
-| GitHub homepage and commits | Demonstrate professional development history | Pending | - |
+| GitHub homepage and commits | Demonstrate professional development history | Ready to push | `app/verification/Assessment3_GitHub_Evidence.md`; focused commits `951dbae` through `66f2318`, with local `main` 0 behind/1 ahead before the Phase 11 commit |
 | Final source archive | Reproducible submission without dependencies/secrets | Pending | - |
 
 ## Confirmed Assessment 3 video requirements
@@ -1692,7 +1725,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 1.1 - baseline and Phases 1-10 evidence confirmed.**
+Status: **Working draft 1.2 - baseline and Phases 1-11 evidence confirmed locally.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
@@ -1813,7 +1846,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> The GitHub history shows the Assessment 3 work in focused stages covering persistence, instrumentation, dashboard reporting, tests, accessibility, and final verification. PhonoTrail Studio now preserves its original classroom builders while adding evidence that the system is healthy, observable, accessible, and understood under load.
+> The repository homepage documents the complete data flow, reproducible setup, measured testing evidence, references, and limitations. The commit history separates the metric contract, persistence, dashboard reporting, resilience, Playwright, JMeter, Lighthouse, Docker verification, and documentation into focused stages. PhonoTrail Studio preserves its original classroom builders while adding evidence that the system is healthy, observable, accessible, and understood under load.
 
 ## Final script validation checklist
 

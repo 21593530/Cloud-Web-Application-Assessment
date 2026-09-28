@@ -1,104 +1,157 @@
 # PhonoTrail Studio
 
-PhonoTrail Studio is a Next.js phoneme activity builder for teachers, extended for Assessment 2 as a database-backed full-stack application. It combines teacher-facing Wordle and Word Search builders with Prisma-powered persistence, validated API routes, and classroom-ready HTML export.
+PhonoTrail Studio is a Next.js phoneme-activity builder for teachers. The project preserves the original Wordle and Word Search classroom workflows from Assessment 1, adds Prisma/SQLite persistence and Docker deployment from Assessment 2, and extends them for Assessment 3 with database-backed reporting, observability, alerts, and test evidence.
 
-## What is included
+Repository: https://github.com/21593530/Cloud-Web-Application-Assessment
 
-- Assessment 2 planning and rubric evidence in the app folder
-- Course-material references under the course-materials folder
-- A prototype and earlier design references in the prototypes folder
-- A Next.js App Router application in the app folder featuring:
-  - saved activity management through same-origin API routes
-  - SQLite + Prisma persistence for activities, words, and phonemes
-  - Zod validation and consistent error responses
-  - teacher workflow pages for Wordle and Word Search
-  - HTML export for classroom distribution
-  - keyboard-accessible Word Search interaction
+## Assessment 3 capabilities
 
-## Project structure
+- Responsive operational dashboard at `/dashboard`.
+- Current Wordle and Word Search counts from stored `Activity` records.
+- Append-only `UsageEvent` records for page views, valid time-on-page samples, and generation outcomes.
+- Average page time, most-used activity type, success/failure counts, success rate, seven-day trends, and recent records.
+- Database connectivity and application-health status.
+- Clearly labelled warnings and simulated/live source disclosure.
+- Non-blocking instrumentation: a reporting outage cannot prevent either builder from exporting HTML.
+- Deterministic simulated records for a repeatable demonstration.
+- Isolated Playwright end-to-end tests, staged JMeter load evidence, and Lighthouse accessibility evidence.
 
-- course-materials/ — assessment brief, rubric, and reference materials
-- prototypes/ — earlier prototype work and static examples
-- app/ — full application source, Prisma schema, validation, and seed data
+## Data flow
+
+```text
+Teacher action
+  -> Wordle or Word Search builder
+  -> standalone HTML export
+  -> validated, non-blocking metric request
+  -> UsageEvent in SQLite
+  -> server-side dashboard aggregation
+  -> accessible reports and alerts
+```
+
+The original `Activity`, `Word`, and ordered `Phoneme` records remain the source of truth for saved teaching activities. Assessment 3 operational history is stored separately in `UsageEvent`; it does not collect raw word lists, phonemes, personal information, IP addresses, or browser fingerprints.
+
+## Repository structure
+
+- `app/` — Next.js application, Prisma schema, migrations, seeds, tests, and evidence summaries.
+- `course-materials/` — assessment briefs, rubrics, plans, and implementation notes.
+- `prototypes/` — earlier prototype and design work.
+- `dockerinstructions.txt` — established Windows/WSL Docker commands.
+
+## Requirements
+
+- Node.js 24 and npm 11 were used for final verification.
+- Microsoft Edge is required by the configured Playwright project.
+- Docker Engine is required for the container workflow.
+- Apache JMeter 5.6.3 is required only to reproduce the saved load test.
 
 ## Local setup
 
-```bash
-cd app
-npm install
-cp .env.example .env 2>/dev/null || true
-npx prisma generate
+From PowerShell:
+
+```powershell
+Set-Location app
+npm ci
+Copy-Item .env.example .env
 npx prisma migrate deploy
 npm run db:seed
+npm run db:seed:metrics
 npm run dev
 ```
 
-Then open http://localhost:3000.
+Open http://localhost:3000. The two seed commands are idempotent: the activity seed skips an existing dataset, while the metric seed recreates only the deterministic `SIMULATED` records.
 
-## Environment variables
+The local environment variable is:
 
-The app expects a SQLite database URL for Prisma.
-
-```bash
+```dotenv
 DATABASE_URL="file:./prisma/dev.db"
 ```
 
-For local development, this can be placed in a `.env` file in the app directory.
+Do not run destructive tests against the demonstration database. Playwright and the documented load/accessibility procedures use `app/prisma/playwright/test.db` instead.
 
-## Database commands
+## Routes and APIs
 
-```bash
-cd app
-npx prisma migrate dev
-npx prisma generate
-npm run db:seed
-npx prisma studio
-```
+| Route | Purpose |
+|---|---|
+| `/wordle` | Saved phoneme Wordle builder, preview, play, and standalone export |
+| `/word-search` | Saved phoneme Word Search builder, preview, keyboard interaction, and standalone export |
+| `/dashboard` | Assessment 3 operational statistics, reports, alerts, and source disclosure |
+| `/settings` | Persistent light/dark theme preference |
+| `GET /api/health` | Lightweight application health response |
+| `GET /api/dashboard/summary` | Database health and aggregated dashboard report |
+| `POST /api/metrics/events` | Strictly validated operational-event ingestion |
+| `/api/activities` and `/api/activities/[id]` | Saved-activity list/create/read/update/delete operations |
 
-## Validation checks
+The established health endpoint is `/api/health`; final Docker verification returned HTTP 200 with `{"data":{"status":"ok"}}`.
 
-```bash
-cd app
+## Metric definitions
+
+| Metric | Definition |
+|---|---|
+| Current activity counts | Current `Activity` rows grouped by `WORDLE` and `WORD_SEARCH` |
+| Average time on page | Mean of validated `PAGE_DURATION.durationMs` samples |
+| Most-used activity type | Type with the greatest number of recorded generation attempts, with empty/tied states |
+| Successful/failed generations | Validated `GENERATION_SUCCESS` and `GENERATION_FAILURE` events |
+| Success rate | Successful generations divided by all recorded generation attempts |
+| Health | Application response plus a lightweight database connectivity check |
+
+The complete contract and alert thresholds are documented in [`course-materials/md/Assessment3_Metrics_Contract.md`](course-materials/md/Assessment3_Metrics_Contract.md).
+
+## Development and verification commands
+
+Run these from `app/`:
+
+```powershell
 npm run validate:contract
+npm run validate:metrics
+npm run validate:alerts
 npm run validate:phonemes
-```
-
-## Build and run checks
-
-```bash
-cd app
+npx tsc --noEmit
 npm run build
-npm run start
+npm run test:e2e
 ```
 
-## API endpoints
+`npm run test:e2e` recreates and migrates an isolated SQLite database before running two Microsoft Edge workflows. See [`app/e2e/README.md`](app/e2e/README.md).
 
-The application exposes JSON API routes for the saved activity workflow:
-
-- GET /api/health
-- GET /api/activities
-- POST /api/activities
-- GET /api/activities/[id]
-- PATCH /api/activities/[id]
-- DELETE /api/activities/[id]
-
-These routes return consistent JSON payloads with validation and database errors handled centrally.
+`npm run lint` currently reports two preserved Assessment 1/2 `react-hooks/set-state-in-effect` findings in Settings and Word Search. Generated test reports are excluded from linting, and no Assessment 3 lint finding remains. These legacy files have not been changed or rule-suppressed without approval.
 
 ## Docker
 
-The project includes a container build and startup flow for SQLite persistence using a Docker volume.
+The image runs `prisma migrate deploy` before starting Next.js and stores SQLite data in a named volume:
 
-```bash
-docker build -t phonotrail .
-docker volume create phonotrail-data
-docker run --rm -p 3000:3000 -v phonotrail-data:/data -e DATABASE_URL=file:/data/phonotrail.db phonotrail
+```powershell
+wsl -d Ubuntu -u root -- docker rm -f phonotrail-app
+wsl -d Ubuntu -u root -- bash -c "cd /mnt/c/repos/cloud-web-app/app && docker build -t phonotrail ."
+wsl -d Ubuntu -u root -- bash -c "docker run --rm -p 3000:3000 -v phonotrail-data:/data -e DATABASE_URL=file:/data/phonotrail.db --name phonotrail-app phonotrail"
 ```
 
-The runtime image uses the Prisma migration step before starting the app and stores the SQLite database in /data so data survives container restarts when the named volume is mounted.
+For a new empty volume, seed it from another terminal after the container starts:
 
-## Design notes
+```powershell
+wsl -d Ubuntu -u root -- docker exec phonotrail-app npm run db:seed
+wsl -d Ubuntu -u root -- docker exec phonotrail-app npm run db:seed:metrics
+```
 
-- Multi-character phoneme tokens such as tʃ, dʒ, and iː are stored as ordered strings rather than split into individual characters.
-- Word Search matching is token-aware to avoid corrupting phoneme strings during reverse checks.
-- The full-stack architecture keeps validation, database access, and export logic separated from UI pages to support reuse and easier maintenance.
-- SQLite is appropriate for this Assessment 2 scope, but a server-backed database would be the next step for multi-instance production deployments.
+Phase 10 verified clean migrations, six UI routes, health, database connectivity, CRUD, both exports, reporting updates, and persistence across a container restart. See [`app/verification/Assessment3_Phase10_Verification.md`](app/verification/Assessment3_Phase10_Verification.md).
+
+## Test and accessibility evidence
+
+| Tool | Final recorded result | Evidence |
+|---|---|---|
+| Playwright | 2/2 isolated Edge workflows passed | [`app/e2e/README.md`](app/e2e/README.md) |
+| JMeter | 33,333 samples, 0 errors; final stage 1,492.76 req/s and 3 ms aggregate p95 | [`app/load-tests/results/Assessment3_JMeter_Results.md`](app/load-tests/results/Assessment3_JMeter_Results.md) |
+| Lighthouse | Dashboard improved from 96 to 100; final Docker dashboard 100 | [`app/lighthouse/results/Assessment3_Lighthouse_Results.md`](app/lighthouse/results/Assessment3_Lighthouse_Results.md) |
+
+Generated Playwright, JMeter, and Lighthouse reports are intentionally ignored by Git. Concise result interpretations and reproducible procedures are version controlled; final raw reports should be included separately in the submission evidence package where required.
+
+## Known limitations and pre-submission decisions
+
+- SQLite is appropriate for this single-instance assessment deployment, not a claim of horizontally scaled production capacity.
+- Page-duration events are best-effort browser samples rather than analytics-grade session tracking.
+- JMeter results describe one local, read-only loopback environment and are not a production capacity guarantee.
+- A Lighthouse score of 100 covers scored automated audits; manual keyboard, focus, landmark, custom-control, and assistive-technology checks still matter.
+- The two legacy lint findings described above remain visible rather than being hidden.
+- The direct `next@16.3.0` dependency has a documented security patch pending approval. The proposed minimum update is `next@16.3.6`, followed by the full Phase 10 regression sequence.
+
+## References and AI acknowledgement
+
+The required APA 7 references and transparent generative-AI acknowledgement are in [`app/REFERENCES.md`](app/REFERENCES.md).
