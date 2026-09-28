@@ -1328,6 +1328,41 @@ Any failure in an existing Assessment 1 or Assessment 2 workflow should be diagn
 - The same build supports the dashboard, metrics, tests, exports, database, and Docker evidence.
 - Mandatory verification commands and expected results are documented.
 
+### Phase 10 completion log - 28 September 2026
+
+Status: **Verification complete with two documented Assessment 1/2 decisions still requiring approval.**
+
+Files added or changed:
+
+- Added `app/scripts/verify-docker-runtime.mjs` and `npm run verify:docker` for repeatable container route, health, CRUD, export, dashboard, and metric checks.
+- Added `app/verification/Assessment3_Phase10_Verification.md` with the commands, results, preservation evidence, and open decisions.
+- Updated ESLint global ignores so generated JMeter, Lighthouse, and Playwright evidence is not treated as application source.
+
+Integrated verification evidence:
+
+- All four focused contract/regression validators and `npx tsc --noEmit` passed.
+- The local production build passed and generated all 12 routes.
+- The isolated Edge Playwright suite passed both required workflows in 5.4 seconds.
+- Docker Engine `29.8.0` built `phonotrail:phase10`; its internal production build also passed.
+- A new disposable named volume received both Prisma migrations, 2 seeded activities, and 31 deterministic metric events.
+- The container returned HTTP 200 for six UI routes and `/api/health`; the dashboard reported database status `CONNECTED`.
+- Container CRUD passed, both builders downloaded standalone HTML, and successful generation reporting changed from 11 to 13.
+- A stop/restart on the same volume retained 1 Wordle, 1 Word Search, 13 successes, and 2 failures, with no pending migrations.
+- The final Docker dashboard Lighthouse audit scored `100`, with all 25 weighted audits passing and zero run warnings.
+- The Phase 8 JMeter plan and results remain preserved and unchanged.
+- The disposable container and volume were removed. The established `phonotrail-data` volume was never touched.
+- The real demonstration database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+
+Approval-gated findings:
+
+- Full lint now reports only the two pre-existing `react-hooks/set-state-in-effect` findings in Settings and Word Search. Generated report noise was fixed at the tooling boundary, but the two A1/2 files were neither changed nor suppressed.
+- The direct `next@16.3.0` security finding from Phase 7 remains open. The proposed smallest update is `next@16.3.6`; it was not applied without approval.
+
+Video evidence/narration value:
+
+- Show the container startup applying both migrations, the `verify:docker` pass, the `/api/health` 200 response, and the populated dashboard.
+- A concise narration point is: "The final image applied both Prisma migrations to a clean named volume. Six routes and health returned 200, database status was connected, CRUD and both standalone exports passed, and the data remained after a container restart. The Docker dashboard also retained its Lighthouse score of 100."
+
 ---
 
 ## Phase 11: Documentation, references, and GitHub evidence
@@ -1473,7 +1508,7 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - [x] Assessment 3 metric records are stored in the database.
 - [x] Simulated records are deterministic and documented.
 - [x] Metric ingestion is validated.
-- [ ] `/api/health` returns HTTP 200 in the final verified environment.
+- [x] `/api/health` returns HTTP 200 in the final verified environment.
 - [x] Dashboard aggregation handles empty and populated data.
 - [x] Instrumentation failure cannot break the original builders.
 
@@ -1490,8 +1525,8 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 ### Quality, documentation, and submission
 
 - [ ] Lint passes.
-- [ ] Production build passes.
-- [ ] Docker build and runtime verification pass.
+- [x] Production build passes.
+- [x] Docker build and runtime verification pass.
 - [ ] Existing CRUD and both standalone exports still work.
 - [ ] README documents Assessment 3 setup, metrics, tests, and evidence.
 - [ ] AI acknowledgement is current.
@@ -1596,7 +1631,7 @@ Each phase update should record:
 | Phase 7: Playwright | Complete | 27 September 2026 | Added an isolated migrated SQLite test harness and two Edge workflows covering persisted builder CRUD, multi-character phonemes, learner interaction, standalone export, health, validation, and dashboard reporting. Both clean runs passed 2/2 tests. | Show both named workflows and the concise `2 passed` report; explain that every run recreates a disposable database and leaves the demonstration data untouched. |
 | Phase 8: JMeter | Complete | 28 September 2026 | Added a read-only JMX plan and ran 1, 10, 100, 1,000, and 10,000 requests per endpoint against a disposable production database. All 33,333 samples returned 200 with zero errors; the final stage reached 1,492.76 req/s and 3 ms aggregate p95. | Show the staged plan, concise table, and final HTML dashboard; explain that the local read-only failure point was not reached and results are not a production-capacity claim. |
 | Phase 9: Lighthouse | Complete | 28 September 2026 | The dashboard baseline scored 96 and exposed two low-contrast amber text treatments. Theme-aware text colours raised all four light/dark combinations above 6:1; the final dashboard and unchanged Wordle route each scored 100. | Show the 96-to-100 result, the exact contrast finding, and the small CSS decision it produced. |
-| Phase 10: Full verification and Docker regression | Not started | - | - | Prove the final integrated application runs in the required environment. |
+| Phase 10: Full verification and Docker regression | Complete with documented exceptions | 28 September 2026 | Local and Docker builds, validators, Playwright, migrations, seeded reporting, health, CRUD, both exports, volume restart, and final Lighthouse all passed. Only two preserved A1/2 lint findings and the approval-gated Next.js patch remain open. | Show clean-volume migration, `verify:docker`, health 200, persisted dashboard data, and Lighthouse 100. |
 | Phase 11: Documentation and GitHub | Not started | - | - | Show repository homepage, focused commits, references, and reproducible instructions. |
 | Phase 12: Video and submission | Not started | - | - | Final recording, timing, packaging, and upload checks. |
 
@@ -1607,7 +1642,7 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Evidence | Required result or purpose | Current status | Final location/result |
 |---|---|---|---|
 | Assessment 2 baseline regression | Demonstrate that A3 extends a working application | Complete | Pre-Phase completion log in this document |
-| Health response | HTTP 200 and healthy status | Baseline complete | `/api/health` returned `200` with `{"data":{"status":"ok"}}`; final A3 database-aware result pending |
+| Health response | HTTP 200 and healthy status | Complete | Docker `/api/health` returned `200` with `{"data":{"status":"ok"}}`; dashboard database status was `CONNECTED` |
 | Database integrity | Preserve existing activities, words, and phonemes | Complete | 3 activities, 7 words, 22 phonemes; integrity check `ok` |
 | Metrics and dashboard contract | Define statistics before implementation | Complete | `course-materials/md/Assessment3_Metrics_Contract.md` |
 | Dashboard screenshots | Show reporting interface and operational statistics | Working verification complete | Desktop, narrow, populated, empty, and error renders reviewed in Phase 5; recapture persistent final evidence after Phase 10 integration |
@@ -1628,7 +1663,7 @@ Record the final location of each artifact as it is created. Do not invent resul
 | JMeter result summary | Explain latency, throughput, and errors | Complete | `app/load-tests/results/Assessment3_JMeter_Results.md`; 33,333 samples, zero errors, final 1,492.76 req/s, 2.19 ms mean, 1 ms median, 3 ms p95, and 17 ms p99 |
 | Lighthouse baseline | Identify accessibility issues | Complete | `app/lighthouse/raw-results/2026-09-28/dashboard-baseline.report.html`; score 96, with one weighted `color-contrast` failure affecting warning and simulated-source labels |
 | Lighthouse final result | Show final score and response to findings | Complete | `app/lighthouse/results/Assessment3_Lighthouse_Results.md`; dashboard 100 and unchanged Wordle route 100, with no scored failures or run warnings |
-| Docker final regression | Demonstrate final integrated runtime | Pending | - |
+| Docker final regression | Demonstrate final integrated runtime | Complete | `app/verification/Assessment3_Phase10_Verification.md`; clean migrations, six UI routes, health 200, CRUD, both exports, reporting update, and named-volume restart passed |
 | GitHub homepage and commits | Demonstrate professional development history | Pending | - |
 | Final source archive | Reproducible submission without dependencies/secrets | Pending | - |
 
@@ -1657,7 +1692,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 1.0 - baseline and Phases 1-9 evidence confirmed.**
+Status: **Working draft 1.1 - baseline and Phases 1-10 evidence confirmed.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
@@ -1766,7 +1801,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> The final application still runs through the Docker workflow established in Assessment 2, using a persisted SQLite volume. The container applies the Prisma migration, the health endpoint returns 200, and the dashboard retrieves its stored reporting data successfully.
+> The final image applied both Prisma migrations to a clean named SQLite volume. Six application routes and the health endpoint returned HTTP 200, the dashboard database status was connected, CRUD and both standalone exports passed, and the reporting data remained after a container restart. The same Docker dashboard retained its Lighthouse accessibility score of 100.
 
 ### 6:50-7:15 - GitHub and conclusion
 

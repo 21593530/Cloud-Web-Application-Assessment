@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated test evidence is not application source.
+    "load-tests/raw-results/**",
+    "lighthouse/raw-results/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 
