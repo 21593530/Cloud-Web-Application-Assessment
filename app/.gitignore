@@ -15,6 +15,7 @@
 /playwright-report/
 /test-results/
 /prisma/playwright/
+/load-tests/raw-results/
 
 # next.js
 /.next/

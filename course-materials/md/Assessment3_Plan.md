@@ -1138,6 +1138,85 @@ Measure and explain how the application behaves under increasing traffic rather 
 - Results are interpreted honestly rather than presented as pass/fail only.
 - The demonstration database remains safe.
 
+### Phase 8 completion log - 28 September 2026
+
+Status: **Complete. The version-controlled JMeter plan ran all five request-volume stages successfully, with honest local-environment interpretation and no demonstration-database writes.**
+
+Files added:
+
+- `app/load-tests/assessment3-read-load.jmx`
+- `app/load-tests/README.md`
+- `app/load-tests/results/Assessment3_JMeter_Results.md`
+
+File changed:
+
+- `app/.gitignore`
+
+Load-plan design:
+
+- The JMX plan sends only safe `GET` traffic to `/api/health`, `/api/dashboard/summary`, and `/api/activities`.
+- Each sampler includes an HTTP 200 response assertion, so a non-200 response or assertion failure contributes to the reported error rate.
+- Host, port, thread count, loop count, and ramp time are command-line properties rather than hard-coded environment assumptions.
+- The five stages represent 1, 10, 100, 1,000, and 10,000 requests per endpoint. Because each iteration calls three endpoints, this produced 3, 30, 300, 3,000, and 30,000 total samples.
+- Configured thread counts were 1, 10, 25, 50, and 100, with loops of 1, 1, 4, 20, and 100 and ramp-up periods of 1, 2, 5, 10, and 20 seconds.
+- The largest stage is explicitly documented as a 10,000-request-per-endpoint equivalent, not 10,000 simultaneous desktop threads.
+- Before results were collected, unacceptable performance was defined as more than 1% errors or aggregate p95 above 2,000 ms; aggregate p95 above 500 ms was defined as degraded.
+- Raw `.jtl`, log, and HTML dashboard output is retained locally under ignored `app/load-tests/raw-results/`. Only the small plan, instructions, and interpreted results are version controlled.
+
+Tooling and runtime context:
+
+- The machine did not have Java or JMeter on its Windows PATH, and WSL access remained denied by the managed execution environment.
+- Portable Eclipse Temurin Java `21.0.12.1+1` and Apache JMeter `5.6.3` were downloaded to a task-specific temporary directory rather than installed system-wide.
+- The Temurin archive matched SHA-256 `d35f31e712f0fcf6ac5a093edc90204fbff22f720ba3950bd09d331d5e621636` from the Adoptium API.
+- The JMeter archive matched Apache's published SHA-512 `387fadca903ee0aa30e3f2115fdfedb3898b102e6b9fe7cc3942703094bd2e65b235df2b0c6d0d3248e74c9a7950a36e42625fd74425368342c12e40b0163076`.
+- The application used the existing Next.js `16.3.0` production build and Node.js `24.12.0` on loopback port 3200.
+- Hardware recorded for interpretation: Windows x64 release `10.0.26200`, AMD Ryzen 7 9800X3D, 16 logical processors, and approximately 31.7 GiB memory.
+- The server used a freshly migrated and seeded disposable SQLite database containing 2 activities, 5 words, 15 phonemes, and 31 deterministic simulated events.
+
+Measured stage results:
+
+| Requests per endpoint | Total samples | Mean | Median | p95 | p99 | Maximum | Throughput | Errors |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 3 | 35.00 ms | 37 ms | 46.00 ms | 46.00 ms | 46 ms | 27.52 req/s | 0 |
+| 10 | 30 | 3.13 ms | 2 ms | 12.70 ms | 16.00 ms | 16 ms | 17.07 req/s | 0 |
+| 100 | 300 | 2.94 ms | 2 ms | 13.95 ms | 17.99 ms | 29 ms | 62.50 req/s | 0 |
+| 1,000 | 3,000 | 2.48 ms | 1 ms | 13.00 ms | 16.00 ms | 31 ms | 304.41 req/s | 0 |
+| 10,000 | 30,000 | 2.19 ms | 1 ms | 3.00 ms | 17.00 ms | 122 ms | 1,492.76 req/s | 0 |
+
+Highest-stage endpoint detail:
+
+- Health: 10,000 samples, 0.85 ms mean, 2 ms p95, 19 ms maximum, and 497.66 requests/second.
+- Dashboard summary: 10,000 samples, 3.75 ms mean, 13 ms p95, 64 ms maximum, and 498.13 requests/second.
+- Activities: 10,000 samples, 1.96 ms mean, 4 ms p95, 122 ms maximum, and 498.21 requests/second.
+- Across all stages, JMeter recorded 33,333 samples, zero assertion failures, zero non-200 responses, and a 0.00% error rate.
+
+Interpretation and limitations:
+
+- No stage reached either the degraded or unacceptable threshold. The first unacceptable point was not reached within this read-only profile and must not be invented.
+- The three-sample first stage includes cold application, database, and runtime work. Later stages use a warmed process and larger samples, so their lower percentile values do not prove that additional load improves performance.
+- The dashboard aggregation remained predictably slower than health, but its 13 ms p95 at the largest stage was still well below the 500 ms degraded threshold.
+- These are local loopback results for one small SQLite dataset and one machine. They demonstrate comparative behaviour, not cloud capacity or internet-facing performance.
+- High-volume writes were deliberately excluded. SQLite write serialisation is a different constraint, and exercising 10,000 destructive or telemetry writes would add risk without improving the required read-heavy evidence.
+- The highest tested read-only stage remained healthy. A true limit would require a harsher condition such as a larger dataset, slower hardware, network latency, sustained simultaneous concurrency, or controlled writes against another disposable database.
+
+Problems encountered and resolved:
+
+- The managed sandbox initially blocked Prisma's schema-engine child process with `EPERM`. Rerunning the established preparer with the required permission successfully created and migrated only the disposable database.
+- The first JMeter smoke invocation split the dotted host property in PowerShell. Passing every JMeter property as an explicit argument fixed the command before any load stage ran.
+- JMeter printed package-scanning deprecation warnings during startup; the plan still parsed successfully and every run exited cleanly with the expected sample count.
+
+Safety and regression evidence:
+
+- The test database retained exactly 2 activities, 5 words, 15 phonemes, and 31 events after all 33,333 read requests.
+- The demonstration database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+- No application source, builder, API contract, Prisma model, migration, demonstration record, or Docker file changed in this phase.
+- The unresolved Next.js security update approval from Phase 7 remains open; Phase 8 did not alter that Assessment 1/2 dependency.
+
+Video evidence/narration value:
+
+- Show the five stage definitions in the JMX/README, the concise results table, and the highest-stage JMeter HTML dashboard.
+- A concise narration point is: "The read-only JMeter profile increased from one to ten thousand requests per endpoint. All 33,333 samples returned HTTP 200 with zero errors; the final stage reached about 1,493 requests per second with a 3 millisecond aggregate p95. The local read-only limit was not reached, so I report that honestly rather than treating this as production capacity."
+
 ---
 
 ## Phase 9: Lighthouse accessibility evaluation
@@ -1364,8 +1443,8 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - [x] Playwright builder/CRUD test passes.
 - [x] Playwright generated activity/user test passes.
 - [x] Playwright uses an isolated test database.
-- [ ] JMeter results exist for all required staged traffic levels or justified equivalents.
-- [ ] JMeter results are interpreted and limitations are documented.
+- [x] JMeter results exist for all required staged traffic levels or justified equivalents.
+- [x] JMeter results are interpreted and limitations are documented.
 - [ ] Lighthouse accessibility evidence is recorded.
 - [ ] Accessibility findings influenced at least one documented design decision where needed.
 
@@ -1476,7 +1555,7 @@ Each phase update should record:
 | Phase 5: Dashboard and reporting views | Complete | 25 September 2026 | Added the responsive `/dashboard` interface with all required metrics, health, alerts, comparisons, trends, recent records, source disclosure, builder links, and accessible loading/empty/error states. | Main visual anchor: show the populated cards, warning, source disclosure, reports, and live refresh after an export. |
 | Phase 6: Alerts and resilience | Complete | 27 September 2026 | Added repeatable alert-policy checks, a 4 KiB request ceiling, valid-record aggregation filters, safe retry recovery, and historical-event retention after activity deletion. All destructive checks used disposable data. | Show the labelled generation-failure warning and explain that malformed data is rejected or excluded while builders and historical reporting remain safe. |
 | Phase 7: Playwright | Complete | 27 September 2026 | Added an isolated migrated SQLite test harness and two Edge workflows covering persisted builder CRUD, multi-character phonemes, learner interaction, standalone export, health, validation, and dashboard reporting. Both clean runs passed 2/2 tests. | Show both named workflows and the concise `2 passed` report; explain that every run recreates a disposable database and leaves the demonstration data untouched. |
-| Phase 8: JMeter | Not started | - | - | Show staged traffic results and explain the performance limit. |
+| Phase 8: JMeter | Complete | 28 September 2026 | Added a read-only JMX plan and ran 1, 10, 100, 1,000, and 10,000 requests per endpoint against a disposable production database. All 33,333 samples returned 200 with zero errors; the final stage reached 1,492.76 req/s and 3 ms aggregate p95. | Show the staged plan, concise table, and final HTML dashboard; explain that the local read-only failure point was not reached and results are not a production-capacity claim. |
 | Phase 9: Lighthouse | Not started | - | - | Show accessibility result and a design decision influenced by it. |
 | Phase 10: Full verification and Docker regression | Not started | - | - | Prove the final integrated application runs in the required environment. |
 | Phase 11: Documentation and GitHub | Not started | - | - | Show repository homepage, focused commits, references, and reproducible instructions. |
@@ -1506,8 +1585,8 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Historical event retention | Preserve usage history after deletion | Complete | Deleting a disposable Wordle changed current activity totals but retained its linked generation event and aggregate counts |
 | Playwright builder/CRUD test | Required builder use case | Complete | `app/e2e/builder-crud.spec.ts`; create, reload/retrieve, update, ordered multi-character phoneme persistence, delete, and `404` verified |
 | Playwright generated activity test | Required user use case | Complete | `app/e2e/generated-activity-reporting.spec.ts`; health `200`, invalid input `400`, preview solved, HTML downloaded, and one successful generation shown by the API and dashboard |
-| JMeter staged-load plan | Required multiple traffic levels | Pending | - |
-| JMeter result summary | Explain latency, throughput, and errors | Pending | - |
+| JMeter staged-load plan | Required multiple traffic levels | Complete | `app/load-tests/assessment3-read-load.jmx`; 1, 10, 100, 1,000, and 10,000 requests per endpoint with documented threads, loops, ramps, HTTP 200 assertions, and read-only routes |
+| JMeter result summary | Explain latency, throughput, and errors | Complete | `app/load-tests/results/Assessment3_JMeter_Results.md`; 33,333 samples, zero errors, final 1,492.76 req/s, 2.19 ms mean, 1 ms median, 3 ms p95, and 17 ms p99 |
 | Lighthouse baseline | Identify accessibility issues | Pending | - |
 | Lighthouse final result | Show final score and response to findings | Pending | - |
 | Docker final regression | Demonstrate final integrated runtime | Pending | - |
@@ -1539,7 +1618,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 0.8 - baseline and Phases 1-7 evidence confirmed.**
+Status: **Working draft 0.9 - baseline and Phases 1-8 evidence confirmed.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
@@ -1625,7 +1704,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> I used JMeter to exercise health, dashboard, and activity endpoints at staged loads equivalent to [FINAL LOAD LEVELS]. At the lower stages the application produced [FINAL LOW-LOAD RESULT]. At [FINAL LIMIT STAGE], response time or errors changed to [FINAL OBSERVATION]. These results reflect this local machine and SQLite configuration, so they demonstrate comparative behaviour rather than production-scale capacity.
+> I used JMeter 5.6.3 to exercise health, dashboard, and activity endpoints at one, ten, one hundred, one thousand, and ten thousand requests per endpoint. All 33,333 samples returned HTTP 200 with zero errors. The final stage reached about 1,493 requests per second with a 2.19 millisecond mean and 3 millisecond aggregate p95. The local read-only failure point was not reached, and these loopback SQLite results demonstrate comparative behaviour rather than production-scale capacity.
 
 ### 5:35-6:20 - Lighthouse accessibility evaluation
 
