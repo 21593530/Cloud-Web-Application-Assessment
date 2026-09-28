@@ -1254,6 +1254,45 @@ Use Lighthouse findings to verify and improve the new Assessment 3 interface whi
 - Before-and-after results can be demonstrated succinctly.
 - No unrelated legacy redesign has occurred.
 
+### Phase 9 completion log - 28 September 2026
+
+Status: **Complete. The dashboard improved from 96 to 100, and the unchanged Wordle route also scored 100.**
+
+Files added or changed:
+
+- Added `app/lighthouse/README.md` with the repeatable production audit procedure and evidence policy.
+- Added `app/lighthouse/results/Assessment3_Lighthouse_Results.md` with the baseline, response, final result, regression result, and limitations.
+- Added Lighthouse `13.5.0` as a locked development dependency.
+- Ignored large generated reports under `app/lighthouse/raw-results/` while preserving them locally for video/submission evidence.
+- Added theme-aware `--warning-text` and `--accent-text` variables in `app/src/app/globals.css` and applied them only to dashboard warning labels and simulated-source text.
+
+Measured evidence and decision:
+
+- The baseline desktop accessibility audit ran against a production build with the migrated, populated disposable database and scored `96`.
+- Twenty-four of 25 weighted audits passed. The single failure was `color-contrast`.
+- The warning label measured `2.9:1` (`#d97706` on `#f1f5f9`) and simulated-source labels measured `2.68:1` (`#ca8a04` on `#f1f5f9`), below the required `4.5:1`.
+- The new light-theme text combinations measure `6.47:1` and `6.25:1`; the corresponding dark-theme combinations measure `6.20:1` and `7.85:1`.
+- The final dashboard audit scored `100`: all 25 weighted audits passed, with zero scored failures and zero Lighthouse run warnings.
+- The unchanged `/wordle` route was checked as the key video builder route and scored `100`: all 21 weighted audits passed with no scored failures or run warnings.
+- Lighthouse retained ten manual checks. The result is therefore strong automated evidence, not a claim that automated testing replaces keyboard, screen-reader, focus-order, landmark, or custom-control review.
+
+Verification and preservation:
+
+- TypeScript validation passed with `npx tsc --noEmit`.
+- The production build passed and generated all 12 application routes.
+- The isolated Playwright regression suite passed both workflows (`2 passed` in 6.6 seconds) after recreating and migrating its disposable database.
+- Contract, metrics, alert-policy, and phoneme regression validators all passed.
+- The audit used `prisma/playwright/test.db`; the real demonstration database was not used for test writes.
+- The real demonstration database SHA-256 remains `5F9FF05E44D7BCE38259F32144EA841D189924D77E1BF398E6B6B2994222F208`.
+- No Assessment 1/2 page code, builder logic, database model, migration, data contract, demonstration record, export workflow, or Docker file changed.
+- Lighthouse wrote valid HTML and JSON reports, then returned exit code `1` only because Windows denied cleanup of its temporary Edge profile. The saved JSON reports contain the stated scores and zero run warnings.
+- The unresolved Next.js security update approval from Phase 7 remains open; Phase 9 did not alter that Assessment 1/2 dependency.
+
+Video evidence/narration value:
+
+- Show the baseline contrast failure, the small theme-token CSS change, and the final dashboard report side by side. The Wordle `100` result is useful secondary evidence if time permits.
+- A concise narration point is: "Lighthouse initially scored the dashboard 96 and identified two amber labels below the required contrast ratio. I introduced theme-aware text colours above 6 to 1, raising the final dashboard score to 100 with no scored failures; the unchanged Wordle route also scored 100."
+
 ---
 
 ## Phase 10: Full verification and Docker regression
@@ -1445,8 +1484,8 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - [x] Playwright uses an isolated test database.
 - [x] JMeter results exist for all required staged traffic levels or justified equivalents.
 - [x] JMeter results are interpreted and limitations are documented.
-- [ ] Lighthouse accessibility evidence is recorded.
-- [ ] Accessibility findings influenced at least one documented design decision where needed.
+- [x] Lighthouse accessibility evidence is recorded.
+- [x] Accessibility findings influenced at least one documented design decision where needed.
 
 ### Quality, documentation, and submission
 
@@ -1556,7 +1595,7 @@ Each phase update should record:
 | Phase 6: Alerts and resilience | Complete | 27 September 2026 | Added repeatable alert-policy checks, a 4 KiB request ceiling, valid-record aggregation filters, safe retry recovery, and historical-event retention after activity deletion. All destructive checks used disposable data. | Show the labelled generation-failure warning and explain that malformed data is rejected or excluded while builders and historical reporting remain safe. |
 | Phase 7: Playwright | Complete | 27 September 2026 | Added an isolated migrated SQLite test harness and two Edge workflows covering persisted builder CRUD, multi-character phonemes, learner interaction, standalone export, health, validation, and dashboard reporting. Both clean runs passed 2/2 tests. | Show both named workflows and the concise `2 passed` report; explain that every run recreates a disposable database and leaves the demonstration data untouched. |
 | Phase 8: JMeter | Complete | 28 September 2026 | Added a read-only JMX plan and ran 1, 10, 100, 1,000, and 10,000 requests per endpoint against a disposable production database. All 33,333 samples returned 200 with zero errors; the final stage reached 1,492.76 req/s and 3 ms aggregate p95. | Show the staged plan, concise table, and final HTML dashboard; explain that the local read-only failure point was not reached and results are not a production-capacity claim. |
-| Phase 9: Lighthouse | Not started | - | - | Show accessibility result and a design decision influenced by it. |
+| Phase 9: Lighthouse | Complete | 28 September 2026 | The dashboard baseline scored 96 and exposed two low-contrast amber text treatments. Theme-aware text colours raised all four light/dark combinations above 6:1; the final dashboard and unchanged Wordle route each scored 100. | Show the 96-to-100 result, the exact contrast finding, and the small CSS decision it produced. |
 | Phase 10: Full verification and Docker regression | Not started | - | - | Prove the final integrated application runs in the required environment. |
 | Phase 11: Documentation and GitHub | Not started | - | - | Show repository homepage, focused commits, references, and reproducible instructions. |
 | Phase 12: Video and submission | Not started | - | - | Final recording, timing, packaging, and upload checks. |
@@ -1587,8 +1626,8 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Playwright generated activity test | Required user use case | Complete | `app/e2e/generated-activity-reporting.spec.ts`; health `200`, invalid input `400`, preview solved, HTML downloaded, and one successful generation shown by the API and dashboard |
 | JMeter staged-load plan | Required multiple traffic levels | Complete | `app/load-tests/assessment3-read-load.jmx`; 1, 10, 100, 1,000, and 10,000 requests per endpoint with documented threads, loops, ramps, HTTP 200 assertions, and read-only routes |
 | JMeter result summary | Explain latency, throughput, and errors | Complete | `app/load-tests/results/Assessment3_JMeter_Results.md`; 33,333 samples, zero errors, final 1,492.76 req/s, 2.19 ms mean, 1 ms median, 3 ms p95, and 17 ms p99 |
-| Lighthouse baseline | Identify accessibility issues | Pending | - |
-| Lighthouse final result | Show final score and response to findings | Pending | - |
+| Lighthouse baseline | Identify accessibility issues | Complete | `app/lighthouse/raw-results/2026-09-28/dashboard-baseline.report.html`; score 96, with one weighted `color-contrast` failure affecting warning and simulated-source labels |
+| Lighthouse final result | Show final score and response to findings | Complete | `app/lighthouse/results/Assessment3_Lighthouse_Results.md`; dashboard 100 and unchanged Wordle route 100, with no scored failures or run warnings |
 | Docker final regression | Demonstrate final integrated runtime | Pending | - |
 | GitHub homepage and commits | Demonstrate professional development history | Pending | - |
 | Final source archive | Reproducible submission without dependencies/secrets | Pending | - |
@@ -1618,7 +1657,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 0.9 - baseline and Phases 1-8 evidence confirmed.**
+Status: **Working draft 1.0 - baseline and Phases 1-9 evidence confirmed.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
@@ -1716,7 +1755,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> Lighthouse gave the dashboard a final accessibility result of [FINAL LIGHTHOUSE SCORE]. The report identified [FINAL FINDING], so I changed [FINAL ACCESSIBILITY CHANGE]. This influenced the final design by improving [FINAL USER BENEFIT], while leaving the completed Assessment 1 and Assessment 2 builder behaviour intact.
+> Lighthouse initially scored the dashboard 96 and identified warning and simulated-data labels below the required 4.5-to-1 contrast ratio. I introduced theme-aware text colours that exceed 6 to 1 in both themes. The final dashboard scored 100 with all 25 weighted audits passing, and the unchanged Wordle route also scored 100. This improved label legibility without changing the completed Assessment 1 and Assessment 2 builder behaviour.
 
 ### 6:20-6:50 - Docker and final reliability
 

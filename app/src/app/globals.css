@@ -9,9 +9,11 @@
   --text-muted: #475569;
   --accent-color: #eab308;
   --accent-strong: #ca8a04;
+  --accent-text: #854d0e;
   --accent-ring: color-mix(in oklab, var(--accent-color) 45%, transparent 55%);
   --success-color: #15803d;
   --warning-color: #d97706;
+  --warning-text: #92400e;
   --neutral-color: #64748b;
   --hero-a: #eff6ff;
   --hero-b: #dbeafe;
@@ -31,9 +33,11 @@ html[data-theme="dark"] {
   --text-muted: #cbd5e1;
   --accent-color: #eab308;
   --accent-strong: #fbbf24;
+  --accent-text: #fde047;
   --accent-ring: color-mix(in oklab, var(--accent-color) 45%, transparent 55%);
   --success-color: #4ade80;
   --warning-color: #fbbf24;
+  --warning-text: #fbbf24;
   --neutral-color: #94a3b8;
   --hero-a: #111c33;
   --hero-b: #16253d;
@@ -1170,7 +1174,7 @@ select {
 
 .dashboard-alert--warning .dashboard-alert-label,
 .dashboard-alert--error .dashboard-alert-label {
-  color: var(--warning-color);
+  color: var(--warning-text);
 }
 
 .dashboard-alert h4,
@@ -1406,7 +1410,7 @@ select {
 
 .dashboard-source--simulated {
   border-color: color-mix(in oklab, var(--accent-strong) 50%, var(--border-color) 50%);
-  color: var(--accent-strong);
+  color: var(--accent-text);
 }
 
 .dashboard-activity-list {

@@ -16,6 +16,7 @@
 /test-results/
 /prisma/playwright/
 /load-tests/raw-results/
+/lighthouse/raw-results/
 
 # next.js
 /.next/
