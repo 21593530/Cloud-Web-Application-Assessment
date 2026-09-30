@@ -5,7 +5,9 @@ const activityTitle = "A3 E2E Generated Activity";
 test("learner interaction and export appear in dashboard reporting", async ({ page, request }) => {
   const healthResponse = await request.get("/api/health");
   expect(healthResponse.status()).toBe(200);
-  await expect(healthResponse.json()).resolves.toEqual({ data: { status: "ok" } });
+  await expect(healthResponse.json()).resolves.toEqual({
+    data: { status: "ok", database: "connected" },
+  });
 
   const invalidResponse = await request.post("/api/activities", {
     data: { type: "WORDLE", title: "Invalid empty test activity", words: [] },

@@ -34,7 +34,6 @@ The original `Activity`, `Word`, and ordered `Phoneme` records remain the source
 
 - `app/` — Next.js application, Prisma schema, migrations, seeds, tests, and evidence summaries.
 - `course-materials/` — assessment briefs, rubrics, plans, and implementation notes.
-- `prototypes/` — earlier prototype and design work.
 - `dockerinstructions.txt` — established Windows/WSL Docker commands.
 
 ## Requirements
@@ -76,12 +75,12 @@ Do not run destructive tests against the demonstration database. Playwright and 
 | `/word-search` | Saved phoneme Word Search builder, preview, keyboard interaction, and standalone export |
 | `/dashboard` | Assessment 3 operational statistics, reports, alerts, and source disclosure |
 | `/settings` | Persistent light/dark theme preference |
-| `GET /api/health` | Lightweight application health response |
+| `GET /api/health` | Database-backed application health response with HTTP 503 failure signalling |
 | `GET /api/dashboard/summary` | Database health and aggregated dashboard report |
 | `POST /api/metrics/events` | Strictly validated operational-event ingestion |
 | `/api/activities` and `/api/activities/[id]` | Saved-activity list/create/read/update/delete operations |
 
-The established health endpoint is `/api/health`; final Docker verification returned HTTP 200 with `{"data":{"status":"ok"}}`.
+The established health endpoint is `/api/health`. It now verifies the required `Activity` and `UsageEvent` tables through Prisma before returning HTTP 200 with `{"data":{"status":"ok","database":"connected"}}`. A failed database check returns HTTP 503 without exposing connection details.
 
 ## Metric definitions
 
@@ -131,7 +130,7 @@ wsl -d Ubuntu -u root -- docker exec phonotrail-app npm run db:seed
 wsl -d Ubuntu -u root -- docker exec phonotrail-app npm run db:seed:metrics
 ```
 
-Phase 10 verified clean migrations, six UI routes, health, database connectivity, CRUD, both exports, reporting updates, and persistence across a container restart. See [`app/verification/Assessment3_Phase10_Verification.md`](app/verification/Assessment3_Phase10_Verification.md).
+Phase 10 verified clean migrations, six UI routes, health, database connectivity, CRUD, both exports, reporting updates, and persistence across a container restart. A 30 September feedback-driven regression then verified that `/api/health` genuinely queries Prisma and returns HTTP 503 when the database is unavailable. See [`app/verification/Assessment3_Phase10_Verification.md`](app/verification/Assessment3_Phase10_Verification.md).
 
 ## Test and accessibility evidence
 
@@ -151,7 +150,10 @@ Generated Playwright, JMeter, and Lighthouse reports are intentionally ignored b
 - A Lighthouse score of 100 covers scored automated audits; manual keyboard, focus, landmark, custom-control, and assistive-technology checks still matter.
 - The two legacy lint findings described above remain visible rather than being hidden.
 - The direct `next@16.3.0` dependency has a documented security patch pending approval. The proposed minimum update is `next@16.3.6`, followed by the full Phase 10 regression sequence.
+- Words are currently owned by individual activities rather than a reusable word-list entity. Shared, versioned word lists are a future schema improvement because introducing them safely requires a dedicated migration and corresponding builder changes.
 
 ## References and AI acknowledgement
 
 The required APA 7 references and transparent generative-AI acknowledgement are in [`app/REFERENCES.md`](app/REFERENCES.md).
+
+The repository acknowledgement does not replace the official AI acknowledgement form required on the LMS Assessments page; that form must also be completed and submitted by the student.

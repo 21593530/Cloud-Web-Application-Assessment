@@ -15,7 +15,7 @@ npm run db:seed:metrics
 npm run dev
 ```
 
-Open http://localhost:3000. The operational dashboard is at http://localhost:3000/dashboard and health is available from http://localhost:3000/api/health.
+Open http://localhost:3000. The operational dashboard is at http://localhost:3000/dashboard. The database-backed healthcheck is available from http://localhost:3000/api/health and returns HTTP 503 if its Prisma database checks fail.
 
 ## Main directories
 

@@ -154,10 +154,10 @@ The final schema should avoid collecting personal information, raw free-text act
   - Accept a strictly validated event payload.
   - Return an appropriate success response.
   - Reject malformed or unsupported events without partial writes.
-- Existing health endpoint: `GET /api/health`.
-  - The working project interpretation is that this satisfies the brief's healthcheck requirement.
-  - Keep this established endpoint and its `200 OK` response unless later marking guidance explicitly requires the literal root path `/health`.
-  - If a literal `/health` route is later proven necessary, prefer a small additive alias rather than replacing or changing `/api/health`.
+- Health endpoint: `GET /api/health`.
+  - The final endpoint performs lightweight Prisma reads against the required `Activity` and `UsageEvent` tables.
+  - It returns HTTP `200 OK` with explicit connected state when both checks pass and controlled HTTP `503` when they fail.
+  - The working project interpretation is that this established API route satisfies the brief's healthcheck requirement. If authoritative marking guidance later requires the literal root path `/health`, prefer a small additive alias.
 
 Endpoint names are implementation choices, not wording mandated by the brief. They may be adjusted during the implementation phase if a simpler design better fits the current code.
 
@@ -1514,6 +1514,65 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - The source archive is reproducible and contains no secrets or unnecessary dependencies.
 - The final GitHub state matches the submitted code.
 
+### Phase 12 preparation log - 28 September 2026
+
+Status: **Ready for recording and manual submission; final commit/push, recording, upload, and LMS confirmation remain user actions.**
+
+Files added or changed:
+
+- Added `course-materials/md/Assessment3_Video_and_Submission.md` with verified starting values, tab preparation, a timed 7:15 script, post-recording checks, and manual submission gates.
+- Added `app/scripts/create-submission-archive.ps1` to create and audit a clean source archive.
+- Added `/submission/` to the root `.gitignore` so local packages cannot be committed accidentally.
+- Corrected the root README structure list so it only describes directories that exist.
+
+Final measured video values:
+
+- `/api/health` returned `ok`; dashboard application/database status was `HEALTHY`/`CONNECTED`.
+- The demonstration database contains 3 activities: 2 Wordle and 1 Word Search.
+- Average recorded page time is 74.9 seconds from 12 valid samples.
+- Wordle is most used with 7 attempts versus 6 Word Search attempts.
+- Generation outcomes are 11 successful and 2 failed, producing an 84.6% success rate before the recording interaction.
+- The prepared dataset contains 31 simulated events and no live events before the planned export.
+- The repeatable visible warning is `GENERATION_FAILURES`: 2 failures in the seven-day window.
+- Reading these values through the summary API did not change the demonstration database hash.
+
+Submission preparation:
+
+- The final script now contains no `[FINAL ...]` placeholders and tells the presenter exactly what to show and say in each timebox.
+- The archive process includes application source, migrations, Playwright tests, JMeter plan/summary, Lighthouse summary, references, AI acknowledgement, GitHub link, and Assessment 3 plan/contract documentation.
+- It excludes `.git`, `node_modules`, `.next`, environment files, SQLite files, backups, raw reports, Playwright artifacts, logs, keys, and TypeScript build caches.
+- The audited archive contains 88 entries; its final byte size and SHA-256 are emitted by the archive script and recorded in the Phase 12 handoff.
+- The archive size is dominated by the existing 101 MB Assessment 1 About-page video. It remains included to preserve established behaviour; the LMS upload limit must be checked before submission.
+- External actions were not performed automatically: the Phase 12 commit must be created, `main` must be pushed normally, the video must be recorded and reviewed, and the LMS uploads/similarity receipt must be confirmed by the student.
+
+Video evidence/narration value:
+
+- Use `course-materials/md/Assessment3_Video_and_Submission.md` as the recording source of truth and keep `Assessment3_Plan.md` as the detailed evidence ledger.
+- Target 7:15 and stop/restart any take likely to exceed 7:45, leaving a safety margin below the mandatory eight-minute maximum.
+
+### Assessment 2 feedback response - 30 September 2026
+
+The Assessment 2 feedback praised CRUD handling, persistent Docker storage, database-driven generation, and incremental Git practice. It identified two improvement areas: a genuine database-backed healthcheck and stronger reusable word-list modelling.
+
+Approved response:
+
+- Changed `GET /api/health` from an unconditional application response to a genuine Prisma-backed check of both required `Activity` and `UsageEvent` tables.
+- A successful check now returns HTTP 200 with `{"data":{"status":"ok","database":"connected"}}`.
+- A database failure returns HTTP 503 with the controlled `DATABASE_UNAVAILABLE` error and `degraded`/`disconnected` details; connection strings and internal Prisma errors are not exposed.
+- Preserved the established `/api/health` route and the existing `status: ok` field while adding explicit database state.
+- Updated Playwright and Docker verification assertions and the final video narration.
+- Documented reusable word lists as future work. The current `Word` rows are owned by individual activities; normalising them into shared/versioned lists would require a migration and coordinated builder changes, so that larger redesign was deliberately deferred immediately before submission.
+
+Verification:
+
+- Focused ESLint passed for the health route, updated Playwright scenario, and Docker verifier.
+- `npx tsc --noEmit` passed.
+- The production build passed with all 12 routes.
+- Playwright passed both isolated Edge workflows in 6.3 seconds.
+- A deliberately unreachable disposable database produced HTTP 503 with the safe expected response.
+- A clean Docker volume applied both migrations and `npm run verify:docker` passed six routes, database-backed health HTTP 200, CRUD, both exports, and reporting changes from 11 to 13 successful generations.
+- All tests used disposable local data/volumes; the established `phonotrail-data` volume and demonstration database were not modified.
+
 ---
 
 ## Definition of Done
@@ -1541,7 +1600,7 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - [x] Assessment 3 metric records are stored in the database.
 - [x] Simulated records are deterministic and documented.
 - [x] Metric ingestion is validated.
-- [x] `/api/health` returns HTTP 200 in the final verified environment.
+- [x] `/api/health` performs genuine database checks, returns HTTP 200 when connected, and returns HTTP 503 when unavailable.
 - [x] Dashboard aggregation handles empty and populated data.
 - [x] Instrumentation failure cannot break the original builders.
 
@@ -1560,13 +1619,13 @@ Aim for approximately 7 minutes 15 seconds so normal pauses do not exceed the 8-
 - [ ] Lint passes.
 - [x] Production build passes.
 - [x] Docker build and runtime verification pass.
-- [ ] Existing CRUD and both standalone exports still work.
-- [ ] README documents Assessment 3 setup, metrics, tests, and evidence.
+- [x] Existing CRUD and both standalone exports still work.
+- [x] README documents Assessment 3 setup, metrics, tests, and evidence.
 - [x] AI acknowledgement is current.
 - [x] At least five APA 7 references are included.
 - [ ] GitHub history shows focused Assessment 3 progress.
 - [ ] Video is between 3 and 8 minutes and covers all required evidence.
-- [ ] Final zip excludes `node_modules`, `.next`, secrets, and unnecessary artifacts.
+- [x] Final zip excludes `node_modules`, `.next`, secrets, and unnecessary artifacts.
 
 ---
 
@@ -1666,7 +1725,7 @@ Each phase update should record:
 | Phase 9: Lighthouse | Complete | 28 September 2026 | The dashboard baseline scored 96 and exposed two low-contrast amber text treatments. Theme-aware text colours raised all four light/dark combinations above 6:1; the final dashboard and unchanged Wordle route each scored 100. | Show the 96-to-100 result, the exact contrast finding, and the small CSS decision it produced. |
 | Phase 10: Full verification and Docker regression | Complete with documented exceptions | 28 September 2026 | Local and Docker builds, validators, Playwright, migrations, seeded reporting, health, CRUD, both exports, volume restart, and final Lighthouse all passed. Only two preserved A1/2 lint findings and the approval-gated Next.js patch remain open. | Show clean-volume migration, `verify:docker`, health 200, persisted dashboard data, and Lighthouse 100. |
 | Phase 11: Documentation and GitHub | Complete locally; push pending | 28 September 2026 | Updated both READMEs, AI acknowledgement, nine APA 7 references, known limitations, reproducible commands, and a Git/GitHub evidence audit. Local history is focused and 0 behind/1 ahead before the Phase 11 commit. | Show the updated homepage and focused Assessment 3 commits after the final normal push. |
-| Phase 12: Video and submission | Not started | - | - | Final recording, timing, packaging, and upload checks. |
+| Phase 12: Video and submission | Prepared; manual recording/submission pending | 30 September 2026 | Filled measured script values, produced a timed run sheet, added an audited source-archive workflow, and implemented the feedback-driven database-backed healthcheck with 200/503 verification. Recording, final push, uploads, and LMS receipt remain manual. | Use the 7:15 run sheet to record every rubric item and explicitly connect Assessment 2 feedback to the genuine database healthcheck. |
 
 ## Evidence ledger
 
@@ -1675,7 +1734,7 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Evidence | Required result or purpose | Current status | Final location/result |
 |---|---|---|---|
 | Assessment 2 baseline regression | Demonstrate that A3 extends a working application | Complete | Pre-Phase completion log in this document |
-| Health response | HTTP 200 and healthy status | Complete | Docker `/api/health` returned `200` with `{"data":{"status":"ok"}}`; dashboard database status was `CONNECTED` |
+| Health response | Genuine database-backed 200/503 status | Complete | Docker `/api/health` returned `200` with `{"data":{"status":"ok","database":"connected"}}`; an unreachable disposable database returned controlled HTTP `503` with `DATABASE_UNAVAILABLE` |
 | Database integrity | Preserve existing activities, words, and phonemes | Complete | 3 activities, 7 words, 22 phonemes; integrity check `ok` |
 | Metrics and dashboard contract | Define statistics before implementation | Complete | `course-materials/md/Assessment3_Metrics_Contract.md` |
 | Dashboard screenshots | Show reporting interface and operational statistics | Working verification complete | Desktop, narrow, populated, empty, and error renders reviewed in Phase 5; recapture persistent final evidence after Phase 10 integration |
@@ -1698,7 +1757,7 @@ Record the final location of each artifact as it is created. Do not invent resul
 | Lighthouse final result | Show final score and response to findings | Complete | `app/lighthouse/results/Assessment3_Lighthouse_Results.md`; dashboard 100 and unchanged Wordle route 100, with no scored failures or run warnings |
 | Docker final regression | Demonstrate final integrated runtime | Complete | `app/verification/Assessment3_Phase10_Verification.md`; clean migrations, six UI routes, health 200, CRUD, both exports, reporting update, and named-volume restart passed |
 | GitHub homepage and commits | Demonstrate professional development history | Ready to push | `app/verification/Assessment3_GitHub_Evidence.md`; focused commits `951dbae` through `66f2318`, with local `main` 0 behind/1 ahead before the Phase 11 commit |
-| Final source archive | Reproducible submission without dependencies/secrets | Pending | - |
+| Final source archive | Reproducible submission without dependencies/secrets | Complete locally | `submission/PhonoTrail-Studio-Assessment3-source.zip`; 88-entry exclusion audit passed, with final size/hash recorded in the Phase 12 handoff |
 
 ## Confirmed Assessment 3 video requirements
 
@@ -1725,7 +1784,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Working draft 1.2 - baseline and Phases 1-11 evidence confirmed locally.**
+Status: **Recording draft 2.0 - measured Phases 1-12 script prepared; manual recording and submission pending.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
@@ -1751,7 +1810,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> The Assessment 3 dashboard summarises both the stored teaching activities and the way the application is being used. These activity totals come from the existing Prisma activity records, while usage statistics come from the new Assessment 3 event data. The dashboard currently contains [FINAL WORDLE COUNT] Wordle activities and [FINAL WORD SEARCH COUNT] Word Search activities. The most-used type is [FINAL TYPE], the average recorded time on page is [FINAL DURATION], and generation has recorded [FINAL SUCCESS COUNT] successful and [FINAL FAILURE COUNT] failed attempts.
+> The Assessment 3 dashboard summarises both stored teaching activities and application usage. The demonstration database contains two Wordle activities and one Word Search. Twelve valid duration samples average 74.9 seconds. Wordle is currently the most-used type, with seven attempts compared with six, and generation has recorded eleven successes and two failures, an 84.6 percent success rate. Activity totals come from existing Prisma activity records, while usage statistics come from the separate UsageEvent table.
 
 ### 1:35-2:20 - Data model and observability flow
 
@@ -1763,7 +1822,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> I kept the completed Assessment 2 Activity, Word, and Phoneme models intact and added `UsageEvent` as a separate append-only reporting model. A user action is validated by the server, stored as a small event record, aggregated by the dashboard service, and then returned through `/api/dashboard/summary`. The existing health endpoint returns HTTP 200, while the database-backed summary confirms database connectivity. No raw word lists, phonemes, personal information, or browser fingerprints are stored in the usage records.
+> I kept the completed Assessment 2 Activity, Word, and Phoneme models intact and added `UsageEvent` as a separate append-only reporting model. A user action is validated by the server, stored as a small event record, aggregated by the dashboard service, and then returned through `/api/dashboard/summary`. In response to Assessment 2 feedback, `/api/health` now queries both required database tables before returning HTTP 200 and connected status, and returns HTTP 503 if the database check fails. No raw word lists, phonemes, personal information, or browser fingerprints are stored in the usage records.
 
 ### 2:20-3:05 - Live generation and dashboard update
 
@@ -1776,7 +1835,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> The original builder and standalone HTML export remain in place. When I generate this [WORDLE OR WORD SEARCH] activity, a small non-blocking instrumentation request records the outcome. The export still works independently, and the dashboard now shows the updated generation count. If reporting is unavailable, the original classroom workflow continues to operate.
+> The original builder and standalone HTML export remain in place. I am exporting this saved Wordle activity. The browser downloads the playable file while a small non-blocking instrumentation request records one successful generation. After refreshing the dashboard, the success count increases by one and a live event appears. If reporting is unavailable, the original classroom workflow continues to operate.
 
 ### 3:05-3:35 - Alerts and unusual states
 
@@ -1787,7 +1846,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> The dashboard also makes unusual states visible. This warning indicates [FINAL WARNING CONDITION]. It uses text and status styling rather than colour alone, and it explains what the statistic means instead of presenting an unexplained error.
+> The dashboard also makes unusual states visible. This warning reports two failed generation attempts in the current seven-day window. It uses text and status styling rather than colour alone, explains the concrete count, and clearly discloses that these are controlled simulated records.
 
 ### 3:35-4:35 - Playwright end-to-end tests
 
@@ -1834,7 +1893,7 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 **Draft narration**
 
-> The final image applied both Prisma migrations to a clean named SQLite volume. Six application routes and the health endpoint returned HTTP 200, the dashboard database status was connected, CRUD and both standalone exports passed, and the reporting data remained after a container restart. The same Docker dashboard retained its Lighthouse accessibility score of 100.
+> The final image applied both Prisma migrations to a clean named SQLite volume. Six application routes and the genuine database-backed healthcheck returned HTTP 200, the dashboard database status was connected, CRUD and both standalone exports passed, and the reporting data remained after a container restart. A separate unavailable-database check returned the expected HTTP 503. The same Docker dashboard retained its Lighthouse accessibility score of 100.
 
 ### 6:50-7:15 - GitHub and conclusion
 
@@ -1852,8 +1911,8 @@ Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second saf
 
 Before recording:
 
-- [ ] Replace every `[FINAL ...]` placeholder with a measured result.
-- [ ] Verify the exact endpoint and model names spoken in the script.
+- [x] Replace every `[FINAL ...]` placeholder with a measured result.
+- [x] Verify the exact endpoint and model names spoken in the script.
 - [ ] Rehearse with all tabs, reports, and terminal windows prepared.
 - [ ] Remove setup delays and avoid waiting for long tests during the recording.
 - [ ] Confirm face, voice, and student ID are clear.

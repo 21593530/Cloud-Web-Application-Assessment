@@ -30,3 +30,6 @@ __pycache__/
 # Build artifacts
 coverage/
 dist/
+
+# Local submission packages
+submission/

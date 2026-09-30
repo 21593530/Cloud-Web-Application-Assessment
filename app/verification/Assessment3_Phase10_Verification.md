@@ -71,3 +71,24 @@ The Phase 8 JMeter plan and results remain preserved at `load-tests/assessment3-
 - No real demonstration record was changed.
 - No established builder, export, database model, migration, API contract, or Docker runtime behavior was changed.
 - The direct `next@16.3.0` dependency remains under the security advisory documented in Phase 7. The proposed smallest update remains `next@16.3.6`, subject to explicit approval and a repeat of this verification sequence.
+
+## Post-feedback database healthcheck verification
+
+Date: 30 September 2026
+
+Assessment 2 feedback correctly identified that the original `/api/health` response did not itself query the database. The endpoint now performs lightweight Prisma reads against both required `Activity` and `UsageEvent` tables. It retains the established route and `status: "ok"` field, adds `database: "connected"`, and returns a controlled HTTP 503 `DATABASE_UNAVAILABLE` response if either database check fails.
+
+Verification results:
+
+- Focused ESLint passed for the route, Playwright assertion, and Docker verifier.
+- `npx tsc --noEmit` passed.
+- The production build compiled all 12 routes.
+- Playwright passed both isolated Edge workflows in 6.3 seconds.
+- A production server pointed at a deliberately unreachable disposable SQLite path returned HTTP 503 with `status: "degraded"` and `database: "disconnected"`; no internal Prisma message or database path was exposed.
+- The updated Docker image applied both migrations to a new disposable volume.
+- `npm run verify:docker` passed six routes, the database-backed HTTP 200 health response, CRUD, both standalone exports, and reporting growth from 11 to 13 successful generations.
+- The real demonstration database and established `phonotrail-data` volume were not used or changed.
+
+The detached verification container later received an external `SIGTERM` when its noninteractive WSL session became idle. Immediately after verification it reported `running=true`, `exit=0`, and its logs contained no application error. The documented recording workflow uses an attached foreground `docker run` command, which keeps the WSL session active. Both explicitly named disposable verification volumes were removed afterward.
+
+The second feedback item—stronger reusable word-list modelling—is recorded as future work. The current `Word` model is owned by an `Activity`; introducing shared/versioned word lists safely would require a dedicated migration and coordinated builder changes, so it was not undertaken immediately before submission.

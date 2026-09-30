@@ -37,7 +37,7 @@ try {
   }
 
   const health = await responseJson(await api.get("/api/health"), 200);
-  assert.deepEqual(health, { data: { status: "ok" } });
+  assert.deepEqual(health, { data: { status: "ok", database: "connected" } });
 
   const baseline = await responseJson(await api.get("/api/dashboard/summary"), 200);
   assert.equal(baseline.data.health.database, "CONNECTED");
