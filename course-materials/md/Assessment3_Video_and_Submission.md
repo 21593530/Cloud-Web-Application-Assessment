@@ -1,5 +1,7 @@
 # Assessment 3 final video and submission run sheet
 
+> **Recording source of truth:** Use `Assessment3_Final_Recording_Script.md` for the final pause-and-resume recording. This document remains the detailed evidence and submission run sheet.
+
 Prepared: 30 September 2026
 Target video length: 7 minutes 15 seconds
 Mandatory range: 3–8 minutes

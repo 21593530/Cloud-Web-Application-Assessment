@@ -46,7 +46,12 @@ try {
   Copy-PackageFile -Source (Join-Path $repoRoot "dockerinstructions.txt") -Destination (Join-Path $packageRoot "dockerinstructions.txt")
   Copy-PackageFile -Source (Join-Path $repoRoot ".gitignore") -Destination (Join-Path $packageRoot ".gitignore")
 
-  $courseFiles = @("Assessment3_Plan.md", "Assessment3_Metrics_Contract.md", "Assessment3_Video_and_Submission.md")
+  $courseFiles = @(
+    "Assessment3_Plan.md",
+    "Assessment3_Metrics_Contract.md",
+    "Assessment3_Video_and_Submission.md",
+    "Assessment3_Final_Recording_Script.md"
+  )
   foreach ($courseFile in $courseFiles) {
     Copy-PackageFile `
       -Source (Join-Path $repoRoot "course-materials\md\$courseFile") `

@@ -1547,7 +1547,7 @@ Submission preparation:
 
 Video evidence/narration value:
 
-- Use `course-materials/md/Assessment3_Video_and_Submission.md` as the recording source of truth and keep `Assessment3_Plan.md` as the detailed evidence ledger.
+- Use `course-materials/md/Assessment3_Final_Recording_Script.md` as the final pause-and-resume recording source of truth. Keep `Assessment3_Video_and_Submission.md` as the detailed submission run sheet and this plan as the evidence ledger.
 - Target 7:15 and stop/restart any take likely to exceed 7:45, leaving a safety margin below the mandatory eight-minute maximum.
 
 ### Assessment 2 feedback response - 30 September 2026
