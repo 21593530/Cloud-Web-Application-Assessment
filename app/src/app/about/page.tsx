@@ -19,6 +19,18 @@ export default function AboutPage() {
         or feel to use.
       </p>
 
+      <h2 id="about-reporting-heading">Assessment 3 — Data-driven Application and Reporting</h2>
+      <p>
+        Assessment 3 extends the persisted builders with a dedicated operational dashboard. It connects
+        current Wordle and Word Search activities with stored usage events to report activity counts,
+        average time on page, the most-used output, generation outcomes, recent records, and seven-day trends.
+      </p>
+      <p>
+        Live and simulated records are labelled clearly, while a Prisma-backed healthcheck and visible warning
+        states make the application easier to monitor. Playwright, JMeter, and Lighthouse evidence is used to
+        explain reliability, behaviour under load, and accessibility improvements.
+      </p>
+
       <div className="feature-list compact">
         <article className="feature-card">
           <h3>Design Focus</h3>
@@ -31,6 +43,18 @@ export default function AboutPage() {
         <article className="feature-card">
           <h3>Export Focus</h3>
           <p>Standalone HTML output that can be shared or printed for classroom use.</p>
+        </article>
+        <article className="feature-card">
+          <h3>Reporting Focus</h3>
+          <p>Dashboard summaries connect saved activities with clearly labelled live and simulated usage records.</p>
+        </article>
+        <article className="feature-card">
+          <h3>Observability Focus</h3>
+          <p>Database-backed health status and visible warnings make unusual operational states easy to understand.</p>
+        </article>
+        <article className="feature-card">
+          <h3>Verification Focus</h3>
+          <p>Playwright, JMeter, and Lighthouse results explain reliability, load behaviour, and accessibility.</p>
         </article>
       </div>
 

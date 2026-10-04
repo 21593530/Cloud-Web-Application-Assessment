@@ -1,0 +1,54 @@
+ASSESSMENT 3 FINAL SPOKEN SCRIPT
+Isaac Riley Lambert — Student number 21593530
+
+Only read the paragraphs below. The numbered headings are for finding your place after pausing.
+
+
+1. IDENTIFICATION AND SCOPE
+
+Hi, I am Isaac Riley Lambert, student number 21593530. This is PhonoTrail Studio for Assessment 3: data-driven application and reporting. It continues my phoneme-based Wordle and Word Search builders and adds database-backed reporting, observability, operational statistics, alerts, and measured testing evidence.
+
+
+2. DASHBOARD AND REPORTING OVERVIEW
+
+The dashboard combines current teaching activities with stored operational events. It shows three saved activities: two Wordle and one Word Search. The prepared duration samples average 74.9 seconds. Wordle is the most-used output, with seven attempts compared with six, and the starting generation result is eleven successes and two failures, or 84.6 percent. Activity totals come directly from Activity records, while operational statistics come from UsageEvent records. The source disclosure distinguishes simulated evidence from live interactions, so prepared data is never presented as genuine user traffic.
+
+
+3. DATABASE MODEL, DATA FLOW, AND HEALTHCHECK
+
+I preserved the Activity, Word, and ordered Phoneme models and added UsageEvent as a separate reporting model. Validated events avoid raw teaching content and personal or fingerprinting data, and the server aggregates them into this dashboard response. In response to my Assessment 2 feedback, the health endpoint now queries the Activity and UsageEvent tables through Prisma before returning HTTP 200 and database connected. A failed check returns a controlled HTTP 503 without exposing internal database details.
+
+
+4. LIVE WORDLE EXPORT AND REPORTING UPDATE
+
+This saved Wordle restores its phonemes, English equivalent, clue, difficulty, and settings from the database. I am exporting it as standalone playable HTML. The download completes while a non-blocking request records the successful generation. After refreshing the dashboard, the success count increases and a live event appears. Reporting therefore reflects real builder use, but a reporting outage cannot prevent the classroom export.
+
+
+5. ALERTS AND REPORTING INTERPRETATION
+
+This warning reports generation failures in the current seven-day window and links the condition to a concrete count. It uses a text label and explanation rather than colour alone. These are controlled simulated records, making the alert repeatable without presenting them as genuine failures.
+
+
+6. PLAYWRIGHT END-TO-END TESTING
+
+Playwright covers both required perspectives with an isolated migrated database. The teacher workflow creates, reloads, updates, and deletes a Word Search while checking ordered multi-character phonemes. The learner workflow checks health and invalid input, solves a Wordle preview, downloads its HTML, and confirms dashboard reporting. Both Edge tests passed in 6.3 seconds, and the disposable database protects the demonstration data.
+
+
+7. JMETER STAGED LOAD TESTING
+
+JMeter exercised health, dashboard-summary, and activity reads at one, ten, one hundred, one thousand, and ten thousand requests per endpoint. All 33,333 samples completed with zero errors. The final stage reached about 1,493 requests per second, a 2.19 millisecond mean, and 3 millisecond aggregate p95. The failure threshold was not reached. These are comparative local read-only results, not a production-capacity claim.
+
+
+8. LIGHTHOUSE ACCESSIBILITY IMPROVEMENT
+
+Lighthouse initially scored the dashboard 96 and found two labels below the required 4.5-to-1 text contrast ratio. I introduced theme-aware text colours above 6 to 1 in both themes. The final dashboard scored 100 with all 25 weighted audits passing, and Wordle also scored 100. Automated results support this change but do not replace manual keyboard, focus, landmark, and assistive-technology checks.
+
+
+9. DOCKER RELIABILITY AND PERSISTENCE
+
+The application is running in Docker with SQLite in the named phonotrail-data volume. Clean-volume verification applied both migrations, returned HTTP 200 for six routes and the database-backed healthcheck, passed CRUD and both exports, and retained data after restart. An unavailable-database check returned HTTP 503, demonstrating meaningful failure signalling.
+
+
+10. GITHUB, LIMITATIONS, AND CONCLUSION
+
+The repository documents the architecture, setup, evidence, references, AI acknowledgement, and limitations. Its focused commits separate persistence, reporting, resilience, Playwright, JMeter, Lighthouse, Docker verification, documentation, and the feedback-driven healthcheck. Words currently belong to individual activities rather than reusable versioned lists; that is documented as future schema work. PhonoTrail Studio preserves its classroom builders while adding evidence that the system is observable, tested, accessible, and understood under load.

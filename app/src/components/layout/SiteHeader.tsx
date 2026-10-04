@@ -50,7 +50,7 @@ export default function SiteHeader() {
           </button>
         </div>
 
-        <p className="assessment-badge">Assessment 2: Full-stack extension</p>
+        <p className="assessment-badge">Assessment 3: Data-driven application and reporting</p>
 
         {isMenuOpen ? (
           <div className="mobile-menu-panel" role="menu">
