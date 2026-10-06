@@ -155,5 +155,3 @@ Generated Playwright, JMeter, and Lighthouse reports are intentionally ignored b
 ## References and AI acknowledgement
 
 The required APA 7 references and transparent generative-AI acknowledgement are in [`app/REFERENCES.md`](app/REFERENCES.md).
-
-The repository acknowledgement does not replace the official AI acknowledgement form required on the LMS Assessments page; that form must also be completed and submitted by the student.

@@ -1,554 +1,481 @@
-# Assessment 3 final pause-and-resume recording script
+# Assessment 3 — final video walkthrough
 
-Prepared: 4 October 2026
+Updated 4 October 2026. **This is the recording guide.** It replaces the previous ten-section script and its printed wording. The matching [spoken-only TXT](Assessment3_Final_Spoken_Script.txt) has the same numbered cues and exactly the same spoken words.
 
-This is the final recording document. Follow it from top to bottom. The earlier `Assessment3_Video_and_Submission.md` remains a detailed evidence record, but this document is the practical script to use while recording.
+**Aim: about 7 minutes. Required length: 3–8 minutes.** Timing below is a guide, not a deadline for each sentence. Keep your face visible, include your voice throughout, and show your student ID at the start.
 
-Target finished length: **approximately 7 minutes 15 seconds**  
-Mandatory length: **3–8 minutes**
+## How to use this without juggling instructions
 
-## The recording method
+- **DO** the small action, then **SAY** the words directly underneath it. Stay on that screen until you finish those words.
+- Only read the quoted text aloud. The explanations and actions are for you.
+- Record one chunk at a time. **Pause → set up the next screen → resume.** You can also pause between numbered cues. You do not have to talk while finding a tab.
+- Speak as if you are showing the app to a classmate. A short breath or quiet click is fine. You do not need to memorise this or recite changing dashboard numbers.
+- Keep this guide on a second screen, another device, or paper—not over the evidence you are recording.
+- You are showing **saved test results**, not running tests on camera. You are not repeating the full Assessment 2 CRUD demonstration.
 
-Record this as ten short chunks using Pause and Resume.
+## Setup — do this once, off camera
 
-- Keep the face-camera overlay visible in every chunk.
-- Keep this script on a phone, tablet, second monitor, or printed page so it is not captured.
-- While paused, move to the next specified window, tab, file, heading, or scroll position.
-- Resume only when the correct evidence is already visible.
-- Read the words under **Say** naturally. Do not read the preparation instructions aloud.
-- Pause at the stated checkpoint before arranging the next chunk.
-- Do not rerun Playwright, JMeter, or Lighthouse during the recording. Their final evidence is already saved.
-- The only intentional live data-changing action is one Wordle HTML export.
-- Speak to the values actually visible on the dashboard. Small differences from the verified starting values are expected because visiting pages records live events.
-- Stop and restart the take if the finished recording is likely to exceed 7 minutes 45 seconds.
+Do not press Record until these checks pass. This setup is not part of the video.
 
-## Rubric coverage
+### 1. Check Docker and prepare its evidence
 
-| Requirement | Where it is demonstrated |
-|---|---|
-| Student ID, face, voice, and application | Chunk 1 and face/voice throughout |
-| Data-driven dashboard and reporting views | Chunks 2, 4, and 5 |
-| Wordle and Word Search activity generation | Chunks 2 and 4 |
-| Database persistence and stored activity data | Chunks 3 and 4 |
-| Operational statistics and health | Chunks 2, 3, and 5 |
-| Alerts and unusual states | Chunk 5 |
-| Playwright evidence | Chunk 6 |
-| JMeter evidence | Chunk 7 |
-| Lighthouse evidence and resulting improvement | Chunk 8 |
-| Docker reliability | Chunk 9 |
-| Code quality, GitHub homepage, and commit history | Chunks 3 and 10 |
-
-## Before opening the recorder
-
-### 1. Start the final Docker application
-
-The final `phonotrail` image has already been built. Open a visible PowerShell window and run:
+Open a PowerShell terminal and run:
 
 ```powershell
-wsl -d Ubuntu -u root -- docker rm -f phonotrail-app
+wsl -d Ubuntu -u root -- docker ps --filter name=phonotrail-app
 ```
 
-Ignore `No such container` if it appears. Then run:
+You need a row for **phonotrail-app**, with port **3000** published. Leave this short output visible for cue 1.2. If it is already running, **do not rebuild, remove or restart it**.
+
+Open [Home](http://localhost:3000/) and [health](http://localhost:3000/api/health). The health page must show `status: "ok"` and `database: "connected"`.
+
+If the app is stopped, use the **App is stopped** instructions at the end of this guide before continuing.
+
+### 2. Check the demonstration data and warning
+
+Open [Dashboard](http://localhost:3000/dashboard), click **Refresh dashboard**, and look just below the introduction for **Alerts and information → Recent generation failures**.
+
+If the simulated example is absent or has aged out, run this in a second PowerShell terminal:
 
 ```powershell
-wsl -d Ubuntu -u root -- bash -c "docker run --rm -p 3000:3000 -v phonotrail-data:/data -e DATABASE_URL=file:/data/phonotrail.db --name phonotrail-app phonotrail"
+wsl -d Ubuntu -u root -- docker exec phonotrail-app npm run db:seed:metrics
 ```
 
-Leave this command running. Do not close this terminal. Wait until it shows that migrations have been checked and Next.js is ready.
+This creates or refreshes **31 labelled simulated reporting records**, including two recent failures. It does **not** delete saved activities or live records. Rerunning refreshes the dates on those fixed example records rather than duplicating them. It **does change the displayed reporting totals**; that is why this happens before recording.
 
-### 2. Open the saved Playwright report
+Refresh the dashboard again. Confirm the warning is visible and **Data source disclosure** at the bottom includes simulated events. Do not reset the database to match an old script. If other live failures are present, the warning count can be higher than two; do not describe those as simulated.
 
-Open a second PowerShell window:
+### 3. Choose the two saved activities
+
+In [Wordle](http://localhost:3000/wordle), check the **Saved activity** dropdown. Choose one with phonemes, an English equivalent, a clue and a difficulty. In [Word Search](http://localhost:3000/word-search), choose one with a non-empty word list and a working grid.
+
+Use existing activities; their exact names do not matter. Write the two titles here if helpful:
+
+- Wordle: ____________________
+- Word Search: ____________________
+
+Rehearse loading and exporting each **before** the take. Both exports should open a new tab and download an HTML file. Allow pop-ups/downloads for localhost if your browser asks. Check both generated outputs are visible. Close the rehearsal output tabs afterward; keep the builder tabs.
+
+Refresh the dashboard **after rehearsal**. Write down **Successful generations: ______**. This is your starting count. The two exports during chunk 2 should add two. Do not seed or perform extra exports between this baseline and chunk 3.
+
+### 4. Open the saved results
+
+From a separate PowerShell terminal:
 
 ```powershell
-cd C:\repos\cloud-web-app\app
+Set-Location C:\repos\cloud-web-app\app
 npm run test:e2e:report
 ```
 
-This serves the existing report; it does not rerun the tests. Leave this PowerShell window open.
+This opens/serves the existing Playwright report; it does **not** run the tests. Leave the terminal running. Check the browser report shows **both tests passed**. Click each test once to find its **Test Steps**, then return to the overview.
 
-### 3. Open browser tabs in this exact order
+Open these two files through File Explorer, or paste each absolute path into a browser address bar:
 
-Use one browser window. Arrange these tabs from left to right:
+- `C:\repos\cloud-web-app\app\lighthouse\raw-results\2026-09-28\dashboard-baseline.report.html`
+- `C:\repos\cloud-web-app\app\lighthouse\raw-results\2026-09-28\dashboard-final.report.html`
 
-1. **Home:** `http://localhost:3000/`
-2. **Dashboard:** `http://localhost:3000/dashboard`
-3. **Dashboard JSON:** `http://localhost:3000/api/dashboard/summary`
-4. **Health JSON:** `http://localhost:3000/api/health`
-5. **Wordle:** `http://localhost:3000/wordle`
-6. **Playwright:** the report opened by `npm run test:e2e:report`
-7. **JMeter:** open the following saved file:
+Confirm the baseline Accessibility score is **96** and final score is **100**. Find and expand the baseline colour-contrast failure now, so you know where it is.
 
-   ```powershell
-   Start-Process "C:\repos\cloud-web-app\app\load-tests\raw-results\2026-09-28\stage-10000-report\index.html"
-   ```
+In VS Code, use **Ctrl+P**, paste each path below, and press Enter. For the two Markdown files, press **Ctrl+Shift+V** to open a readable preview; pin the preview tabs so the next file does not replace them.
 
-8. **Lighthouse baseline:**
+- `app/prisma/schema.prisma` — start at `model Activity`.
+- `app/load-tests/results/Assessment3_JMeter_Results.md` — start at **Outcome**; find **Stage results** below it.
+- `app/lighthouse/results/Assessment3_Lighthouse_Results.md` — start at **Finding and response**.
 
-   ```powershell
-   Start-Process "C:\repos\cloud-web-app\app\lighthouse\raw-results\2026-09-28\dashboard-baseline.report.html"
-   ```
+The JMeter Markdown table is the saved five-stage evidence. You do not need to launch JMeter or open five separate reports. Do not use `.last-run.json` as your main Playwright evidence; the HTML report is clearer.
 
-9. **Lighthouse final:**
+### 5. Put the windows in recording order
 
-   ```powershell
-   Start-Process "C:\repos\cloud-web-app\app\lighthouse\raw-results\2026-09-28\dashboard-final.report.html"
-   ```
+Keep one browser window for the app/reports and VS Code for the schema/two result summaries. Use page names, not tab numbers; exported files will add tabs.
 
-10. **GitHub homepage:** `https://github.com/21593530/Cloud-Web-Application-Assessment`
-11. **GitHub commits:** `https://github.com/21593530/Cloud-Web-Application-Assessment/commits/main/`
+| Chunk | Have this ready before resuming |
+|---|---|
+| 1 | Home, student ID, Docker status terminal |
+| 2 | Wordle and Word Search builder tabs |
+| 3 | Dashboard refreshed after both exports |
+| 4 | VS Code schema; browser health page |
+| 5 | Playwright report overview |
+| 6 | VS Code JMeter results preview |
+| 7 | Lighthouse baseline browser tab, results preview, final browser tab |
+| 8 | GitHub homepage and commits page |
 
-### 4. Open VS Code tabs in this exact order
+Open [GitHub homepage](https://github.com/21593530/Cloud-Web-Application-Assessment) and [commits](https://github.com/21593530/Cloud-Web-Application-Assessment/commits/main/). Make sure the assessed work is visible; do not push or commit during the recording.
 
-1. `app/prisma/schema.prisma` — position at `model UsageEvent` around line 51.
-2. `app/src/app/api/health/route.ts` — keep the Prisma checks and HTTP 503 response visible.
-3. `app/e2e/builder-crud.spec.ts` — position at the test name.
-4. `app/e2e/generated-activity-reporting.spec.ts` — position at the test name.
-5. `app/load-tests/results/Assessment3_JMeter_Results.md` — open Markdown Preview and position at `Stage results`.
-6. `app/lighthouse/results/Assessment3_Lighthouse_Results.md` — open Markdown Preview and position at `Results`.
-7. `app/verification/Assessment3_Phase10_Verification.md` — position at `Docker verification`; later move to `Post-feedback database healthcheck verification`.
+Close notifications, secrets and unrelated windows. Check the microphone, face camera and text size. Do a short sound test. **If a report, warning or saved activity is missing, resolve it now—not halfway through the recording.**
 
-### 5. Final visual preparation
+---
 
-- Set browser and VS Code zoom so the important text is readable in the captured video.
-- Close notifications, email, private tabs, secrets, and unrelated applications.
-- Put the dashboard near the top of the page.
-- On Wordle, make sure the `Saved activity` dropdown is visible.
-- Confirm Browser Tab 4 displays:
+# Recording starts here
 
-  ```json
-  {"data":{"status":"ok","database":"connected"}}
+## Chunk 1 — Introduce the project
+
+Guide: 0:00–0:30.
+
+**What this means — not spoken:** You are showing what the app is for and that the assessed version is running in Docker.
+
+**While paused:** Browser → Home (`http://localhost:3000/`). Face camera on; student ID in your hand. Have the Docker status terminal ready behind the browser.
+
+### 1.1 — Home page
+
+**DO:** Start recording. Hold your student ID beside your face for a few seconds, then lower it. Stay on Home.
+
+**SAY:**
+
+> Hi, I'm Isaac Riley Lambert, student number 21593530. This is PhonoTrail Studio, my phoneme-based Wordle and Word Search builder. For Assessment 3, I've added a dashboard so I can see how the app is being used and whether it's working properly.
+
+### 1.2 — PowerShell → prepared Docker status
+
+**DO:** Switch to the terminal showing the `docker ps` result. Point to `phonotrail-app` and the port 3000 mapping. Do not type or start anything.
+
+**SAY:**
+
+> I'm running the app in Docker, using the same persistent database setup from Assessment 2.
+
+**PAUSE. Chunk 1 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 2 — Load and export both activities
+
+Guide: 0:30–1:40.
+
+**What this means — not spoken:** Loading proves these are saved activities. Exporting shows what a learner actually receives. Both exports should also create reporting events.
+
+**While paused:** Browser → Wordle (`http://localhost:3000/wordle`), at the Saved activity dropdown. Use the two saved activities you checked during setup; do not create new ones on camera.
+
+### 2.1 — Wordle builder → Saved activity
+
+**DO:** Select your prepared saved Wordle. Wait for `Loaded "…".` Show the phoneme tokens, then scroll slowly to English equivalent, Teacher clue and Difficulty.
+
+**SAY:**
+
+> I'll start with a saved Wordle. Selecting it brings back the phonemes, English word, clue and difficulty from the database. I don't need to enter them again.
+
+### 2.2 — Wordle builder → Export HTML → generated Wordle tab
+
+**DO:** Click Export HTML once, just above Live Preview. Switch to the newly opened game tab and leave its grid and keyboard visible. If no tab opens, pause and open the latest `phonotrail-wordle.html` from browser Downloads; do not export again.
+
+**SAY:**
+
+> This is the exported Wordle that a learner can use. It's a standalone HTML file, so they don't need my application server running to play it.
+
+### 2.3 — Word Search builder → Saved activity
+
+**DO:** Switch to `http://localhost:3000/word-search`. Select your prepared saved Word Search. Wait for it to load, then show its word list and Rows/Columns settings.
+
+**SAY:**
+
+> Word Search works the same way. This saved activity restores its phoneme word list and grid settings.
+
+### 2.4 — Word Search builder → Export HTML → generated worksheet tab
+
+**DO:** Click Export HTML once. Show the new worksheet tab with its grid and word list. If no tab opens, pause and open the latest `phonotrail-word-search.html` from Downloads.
+
+**SAY:**
+
+> Here's its exported worksheet. Both outputs come from stored teaching content, and each export also records a generation event for the dashboard.
+
+**PAUSE. Chunk 2 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 3 — Show what the dashboard tells you
+
+Guide: 1:40–3:15.
+
+**What this means — not spoken:** The dashboard answers three questions: what is saved, how the app is being used, and whether anything needs attention. Simulated data is labelled demonstration data, not real classroom traffic.
+
+**While paused:** Browser → Dashboard (`http://localhost:3000/dashboard`). Click Refresh dashboard and wait. Check that Successful generations is two higher than your setup baseline. If it is not, use the troubleshooting notes before recording this chunk.
+
+### 3.1 — Dashboard → Alerts and information, just below the introduction
+
+**DO:** Keep Recent generation failures and its explanatory sentence visible. Point to the WARNING label. This must be the prepared simulated example checked during setup.
+
+**SAY:**
+
+> The dashboard also tells me when something needs attention. This warning shows recent failed generation attempts. I've included labelled simulated failures to demonstrate it safely. The warning uses words as well as colour.
+
+### 3.2 — Dashboard → Saved activity and usage metrics
+
+**DO:** Scroll slightly to the cards. Point across Current activities, Saved Wordle and Saved Word Search.
+
+**SAY:**
+
+> These cards count the activities currently saved in the database, split into Wordle and Word Search.
+
+### 3.3 — Dashboard → Average time on page and Most-used output
+
+**DO:** Keep these two cards visible and point to each as you mention it. You do not need to read their numbers aloud.
+
+**SAY:**
+
+> These show average recorded time on a page and which activity type has the most generation attempts. That helps me understand usage, although time on a page isn't proof of learning.
+
+### 3.4 — Dashboard → Successful generations, Failed generations and Generation success rate
+
+**DO:** Point to Successful generations first, then the failures and percentage. Only use the first sentence after confirming the increase during the pause.
+
+**SAY:**
+
+> The success count has increased after those two exports. Alongside it, I can see failed attempts and the overall success rate, so I can monitor export reliability.
+
+### 3.5 — Dashboard → Generation attempts by activity type and Generation outcomes
+
+**DO:** Scroll down to the two charts directly below the cards. Leave both visible.
+
+**SAY:**
+
+> The charts make the comparison easier to read: which builder is being used, and how many attempts succeeded or failed.
+
+### 3.6 — Dashboard → Generation trend
+
+**DO:** Scroll to the seven-day table alongside Average time by page. Point to the dated rows.
+
+**SAY:**
+
+> This table shows successes and failures over the last seven dates, rather than just one overall total.
+
+### 3.7 — Dashboard → Recent operational events, then Data source disclosure
+
+**DO:** Scroll to Recent operational events and point to a `Generation succeeded` row marked `live`. Then scroll slightly to the Data source disclosure directly below the reports. If navigation has pushed the export out of the ten recent rows, pause; do not describe an invisible row.
+
+**SAY:**
+
+> Here's a live generation event from the demonstration. Below it, the disclosure separates live records from simulated examples. That makes it clear which figures came from real use and which were prepared for testing.
+
+**PAUSE. Chunk 3 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 4 — Explain the database and health check
+
+Guide: 3:15–4:05.
+
+**What this means — not spoken:** Activity → Word → Phoneme stores teaching content. UsageEvent stores what happened during use. The health endpoint checks that the database can actually be read.
+
+**While paused:** VS Code → `app/prisma/schema.prisma`, near the top. Also have the browser health page ready. This is the only application code file you need to show.
+
+### 4.1 — VS Code → schema.prisma → model Activity, Word and Phoneme
+
+**DO:** Show Activity and Word, then scroll just enough to show Phoneme and its `symbol` and `position` fields. Do not read every field.
+
+**SAY:**
+
+> The database separates activities, words and phonemes. Each phoneme has a position, so sounds stay in the right order, including symbols made from more than one character.
+
+### 4.2 — VS Code → schema.prisma → model UsageEvent
+
+**DO:** Scroll a little farther down to UsageEvent. Point to eventType, durationMs, source and createdAt while leaving the whole model visible.
+
+**SAY:**
+
+> UsageEvent stores the reporting data separately. It records things like page time and export results. The server validates these events, saves them, and adds them up for the dashboard. This keeps reporting separate from the teaching content.
+
+### 4.3 — Browser → http://localhost:3000/api/health
+
+**DO:** Show the JSON containing `status: ok` and `database: connected`. Do not stop the database to demonstrate a failure.
+
+**SAY:**
+
+> This health check now reads both the activity and reporting tables before returning OK. That addresses my Assessment 2 feedback: it checks the database, not just whether the server can send a response.
+
+**PAUSE. Chunk 4 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 5 — Show the two Playwright tests
+
+Guide: 4:05–4:55.
+
+**What this means — not spoken:** Playwright uses a browser to perform actions and check the result automatically. One test covers the teacher's workflow; the other covers a learner interaction and export reporting.
+
+**While paused:** Browser → saved Playwright report. Clear any search/filter so both passed tests are listed. The report was opened during setup; do not run tests while recording.
+
+### 5.1 — Playwright report → overview with both passed tests
+
+**DO:** Leave the two passing test names and green results visible.
+
+**SAY:**
+
+> I used Playwright to check complete workflows in the browser. This saved report shows both tests passed.
+
+### 5.2 — Playwright report → teacher can create, retrieve, update, and delete a Word Search activity
+
+**DO:** Click that test name. Show its Test Steps, with saving, reloading, updating and deleting visible as you scroll. Do not open the source file or read code.
+
+**SAY:**
+
+> The teacher test saves a Word Search, reloads it, changes it and deletes it. It also checks that multi-character phonemes keep their correct order.
+
+### 5.3 — Playwright report → learner interaction and export appear in dashboard reporting
+
+**DO:** Return to the report overview using browser Back, then click the learner test. Show its steps for the guess, download and dashboard checks.
+
+**SAY:**
+
+> The learner test solves a Wordle in the preview, checks the HTML download, and confirms that the dashboard records the success. These tests use a separate database, so they don't overwrite my saved demonstration activities.
+
+**PAUSE. Chunk 5 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 6 — Explain the JMeter load results
+
+Guide: 4:55–5:45.
+
+**What this means — not spoken:** JMeter sends repeated requests to measure speed and errors. Requests per endpoint are not the same thing as simultaneous users. The saved run tested reads, not a full browser export under load.
+
+**While paused:** VS Code → `app/load-tests/results/Assessment3_JMeter_Results.md` → Markdown Preview (`Ctrl+Shift+V`). Start at Outcome. The summary is easier to show than switching between five large reports.
+
+### 6.1 — JMeter results preview → Outcome
+
+**DO:** Show the paragraph containing 33,333 HTTP samples and 0.00% errors.
+
+**SAY:**
+
+> JMeter tested the health, activity and dashboard endpoints at increasing request volumes. Across all five stages, it recorded thirty-three thousand, three hundred and thirty-three requests with no errors.
+
+### 6.2 — JMeter results preview → Stage results
+
+**DO:** Scroll to the five-row table. Point down the Requests per endpoint column, then to the final row's p95 and Errors columns. Keep the table readable; no raw report switch is needed.
+
+**SAY:**
+
+> The stages go from one to ten thousand requests per endpoint. In the largest stage, ninety-five percent of responses took about three milliseconds or less. None of the stages crossed my failure threshold.
+
+### 6.3 — JMeter results preview → Interpretation and limitations
+
+**DO:** Scroll to the first two limitation bullets, which identify staged requests, 100 threads and local networking.
+
+**SAY:**
+
+> These were local, read-only tests, not ten thousand simultaneous users or full classroom exports. They show how this test setup behaved, not what a cloud deployment could handle.
+
+**PAUSE. Chunk 6 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 7 — Show the accessibility improvement
+
+Guide: 5:45–6:30.
+
+**What this means — not spoken:** Lighthouse checks accessibility automatically. Here it found text that was too faint against its background; the colour change fixed those scored failures.
+
+**While paused:** Browser → saved Lighthouse baseline report, at the Accessibility score. Have the final report open beside it. VS Code → Lighthouse results preview should already be positioned at Finding and response.
+
+### 7.1 — Browser → dashboard-baseline.report.html
+
+**DO:** Show Accessibility 96. Scroll to the failed colour-contrast audit and expand it so the warning/simulated label examples are visible.
+
+**SAY:**
+
+> Lighthouse gave the original dashboard an accessibility score of ninety-six. It found that the warning and simulated-data labels didn't have enough contrast against their backgrounds.
+
+### 7.2 — VS Code → app/lighthouse/results/Assessment3_Lighthouse_Results.md → Finding and response
+
+**DO:** Show the table of corrected text colours and contrast ratios for Light and Dark. It is directly below the two original failing ratios.
+
+**SAY:**
+
+> I changed those text colours in both light and dark themes. The new combinations are above six to one, making the labels easier to read.
+
+### 7.3 — Browser → dashboard-final.report.html
+
+**DO:** Show Accessibility 100. Leave this score visible for the rest of the chunk.
+
+**SAY:**
+
+> The follow-up dashboard audit scored one hundred. That means its scored automated checks passed, not that accessibility is finished. Keyboard and assistive-technology checks still matter.
+
+**PAUSE. Chunk 7 is finished.** Prepare the next chunk before resuming.
+
+---
+
+## Chunk 8 — Finish with GitHub
+
+Guide: 6:30–7:00.
+
+**What this means — not spoken:** The repository shows the implementation, supporting documents and development history. You are acknowledging a real limitation rather than claiming everything is perfect.
+
+**While paused:** Browser → `https://github.com/21593530/Cloud-Web-Application-Assessment`, scrolled to the rendered README. Have the commits page open beside it.
+
+### 8.1 — GitHub → repository homepage → README
+
+**DO:** Show Data flow, then scroll to Known limitations and pre-submission decisions. The README also links setup, evidence and references; do not open each link.
+
+**SAY:**
+
+> The repository explains the data flow and links the setup instructions, test evidence and references. One limitation is that word lists still belong to individual activities. Shared reusable lists would be a future improvement.
+
+### 8.2 — GitHub → commits page
+
+**DO:** Switch to `https://github.com/21593530/Cloud-Web-Application-Assessment/commits/main/`. Show the focused Assessment 3 commits, scrolling only enough to reveal a few. Finish here.
+
+**SAY:**
+
+> The commits show how the reporting and testing were added in stages. Overall, the app still produces the classroom activities, but now I can see how it's being used and back up the results with tests. Thank you.
+
+**PAUSE. Chunk 8 is finished.** Stop and save the recording.
+
+---
+
+# Off-camera help — not part of the script
+
+## If something does not match the screen
+
+- **App is stopped:** if you already have the current `phonotrail` image and no `phonotrail-app` container exists, start it with the command below in a terminal you leave open. It reuses the existing named volume; do not delete the volume. If a stopped container with that name already exists, use `wsl -d Ubuntu -u root -- docker start -a phonotrail-app` instead. If Docker reports a port conflict or a missing image, resolve it before recording; do not switch to `npm run dev` and call that Docker.
+
+  ```powershell
+  wsl -d Ubuntu -u root -- docker run --rm -p 3000:3000 -v phonotrail-data:/data -e DATABASE_URL=file:/data/phonotrail.db --name phonotrail-app phonotrail
   ```
 
-- Confirm the Playwright report shows two passed tests.
-- Confirm GitHub shows commit `9237a02` near the top.
-- Have the physical student ID ready.
-- Start a separate timer when recording begins.
-
-## Expected dashboard values
-
-The verified prepared dataset started with the following values. Live page visits may increase source/event totals or duration samples before recording, so use the values visible on screen rather than forcing these numbers.
-
-| Metric | Verified prepared value |
-|---|---:|
-| Current activities | 3 |
-| Saved Wordle | 2 |
-| Saved Word Search | 1 |
-| Average page time | 74.9 seconds from 12 prepared samples |
-| Most-used output | Wordle |
-| Wordle attempts | 7 |
-| Word Search attempts | 6 |
-| Successful generations | 11 |
-| Failed generations | 2 |
-| Success rate | 84.6% |
-| Prepared simulated events | 31 |
-
-The live Wordle export should increase successful generations by one and add a live generation event. Do not repeat the export if the first one succeeds.
-
----
-
-# Recording chunks
-
-## Chunk 1 — Identification and scope
-
-Target: **0:00–0:25**  
-Rubric evidence: mandatory student ID, face, voice, working application, and clear project scope.
-
-### While paused, prepare
-
-- Show Browser Tab 1: PhonoTrail Studio home page.
-- Make sure the face-camera overlay is visible and not covering important page content.
-- Hold the student ID ready beside your face.
-
-### Resume and do
-
-1. Look toward the camera.
-2. Hold the student ID steady for several seconds.
-3. Keep the home page visible.
-4. Lower the ID after saying the student number.
-
-### Say
-
-> Hi, I am Isaac Riley Lambert, student number 21593530. This is PhonoTrail Studio for Assessment 3: data-driven application and reporting. It continues my phoneme-based Wordle and Word Search builders and adds database-backed reporting, observability, operational statistics, alerts, and measured testing evidence.
-
-### Pause when
-
-Pause immediately after saying “measured testing evidence.”
-
-### Check before continuing
-
-- Face visible.
-- ID readable.
-- Name and student number spoken clearly.
-- Home page visible.
-
----
-
-## Chunk 2 — Dashboard and reporting overview
-
-Target: **0:25–1:35**  
-Rubric evidence: polished dashboard, stored activity counts, meaningful reporting views, operational statistics, and source transparency.
-
-### While paused, prepare
-
-- Switch to Browser Tab 2: Dashboard.
-- Scroll to the top.
-- Look at the actual card values so you do not accidentally quote a stale number.
-
-### Resume and do
-
-1. Point to `Application healthy` and `Database connected`.
-2. Move across the `Current activities`, `Saved Wordle`, and `Saved Word Search` cards.
-3. Point to `Average time on page`, `Most-used output`, successful and failed generations, and success rate.
-4. Scroll to `Generation attempts by activity type` and `Generation outcomes`.
-5. Scroll near the bottom to `Recent operational events` and `Data source disclosure`.
-6. Point to the visible `simulated` and `live` labels.
-
-### Say
-
-> The dashboard combines current teaching activities with stored operational events. It shows three saved activities: two Wordle and one Word Search. The prepared duration samples average 74.9 seconds. Wordle is the most-used output, with seven attempts compared with six, and the starting generation result is eleven successes and two failures, or 84.6 percent. Activity totals come directly from Activity records, while operational statistics come from UsageEvent records. The source disclosure distinguishes simulated evidence from live interactions, so prepared data is never presented as genuine user traffic.
-
-If a live value differs, state the visible value instead of the prepared number.
-
-### Pause when
-
-Pause with `Recent operational events` or `Data source disclosure` visible.
-
-### Check before continuing
-
-- Activity counts shown.
-- Average duration shown.
-- Most-used type shown.
-- Success/failure statistics shown.
-- Simulated/live disclosure shown.
-
----
-
-## Chunk 3 — Database model, data flow, and genuine healthcheck
-
-Target: **1:35–2:30**  
-Rubric evidence: clean database persistence, structured operational data, code quality, meaningful health status, and response to Assessment 2 feedback.
-
-### While paused, prepare
-
-- Switch to VS Code Tab 1: `app/prisma/schema.prisma` at `model UsageEvent`.
-- Make the model readable without unnecessary surrounding code.
-
-### Resume and do
-
-1. Point to `eventType`, `activityType`, `activityId`, `pagePath`, `durationMs`, `source`, and `createdAt`.
-2. Switch to VS Code Tab 2: `app/src/app/api/health/route.ts`.
-3. Point to the two Prisma `findFirst` checks, the connected response, and the controlled HTTP 503 response.
-4. Switch to Browser Tab 3: Dashboard JSON. Briefly point to `health`, `activities`, `usage`, `sources`, and `recentEvents`. Use `Ctrl+F` if needed.
-5. Switch to Browser Tab 4: Health JSON. Point to `status: ok` and `database: connected`.
-
-### Say
-
-> I preserved the Activity, Word, and ordered Phoneme models and added UsageEvent as a separate reporting model. Validated events avoid raw teaching content and personal or fingerprinting data, and the server aggregates them into this dashboard response. In response to my Assessment 2 feedback, the health endpoint now queries the Activity and UsageEvent tables through Prisma before returning HTTP 200 and database connected. A failed check returns a controlled HTTP 503 without exposing internal database details.
-
-### Pause when
-
-Pause with Browser Tab 4 showing the connected health response.
-
-### Check before continuing
-
-- `UsageEvent` shown.
-- Health implementation shown—not merely the JSON.
-- HTTP 200 connected response shown.
-- Feedback-driven improvement explicitly explained.
-
----
-
-## Chunk 4 — Live Wordle export and reporting update
-
-Target: **2:30–3:15**  
-Rubric evidence: activity generation, persisted builder data retrieval, generated output, and clear connection between application use and reporting.
-
-### While paused, prepare
-
-- Note the current `Successful generations` number on Browser Tab 2.
-- Switch to Browser Tab 5: Wordle.
-- Scroll to the `Saved activity` dropdown.
-
-### Resume and do
-
-1. Open `Saved activity` and select `Ship phoneme Wordle`.
-2. If that title is absent, choose any populated saved Wordle.
-3. Wait for the `Loaded` status message.
-4. Briefly point to the restored phonemes, English equivalent, clue, difficulty, and live preview.
-5. Scroll to the buttons above `Live Preview`.
-6. Click `Export HTML` once.
-7. Wait for `Exported a standalone playable HTML Wordle.`
-8. Do not open the downloaded file; the visible download and success message are sufficient.
-9. Switch to Browser Tab 2 and refresh once with `Ctrl+R`.
-10. Point to the successful-generation increase and the newest live generation event.
-
-### Say while performing the actions
-
-> This saved Wordle restores its phonemes, English equivalent, clue, difficulty, and settings from the database. I am exporting it as standalone playable HTML. The download completes while a non-blocking request records the successful generation. After refreshing the dashboard, the success count increases and a live event appears. Reporting therefore reflects real builder use, but a reporting outage cannot prevent the classroom export.
-
-### Pause when
-
-Pause with the updated dashboard metric or newest live event visible.
-
-### Check before continuing
-
-- Saved activity loaded from the database.
-- Export success message visible.
-- Dashboard refreshed only once.
-- Increased count or new live event shown.
-
----
-
-## Chunk 5 — Alerts and reporting interpretation
-
-Target: **3:15–3:40**  
-Rubric evidence: warning indicators for unusual states and understandable operational signals.
-
-### While paused, prepare
-
-- Remain on Browser Tab 2.
-- Scroll to `Alerts and information`.
-- Place `Recent generation failures` clearly on screen.
-
-### Resume and do
-
-1. Point to the warning title.
-2. Point to the failure count and explanatory text.
-3. Keep the textual label visible while explaining accessibility.
-
-### Say
-
-> This warning reports generation failures in the current seven-day window and links the condition to a concrete count. It uses a text label and explanation rather than colour alone. These are controlled simulated records, making the alert repeatable without presenting them as genuine failures.
-
-### Pause when
-
-Pause with the complete warning visible.
-
-### Check before continuing
-
-- Warning title and supporting text readable.
-- Failure count mentioned.
-- Simulated nature disclosed.
-
----
-
-## Chunk 6 — Playwright end-to-end testing
-
-Target: **3:40–4:35**  
-Rubric evidence: clear Playwright evidence explaining reliability from both teacher and learner perspectives.
-
-### While paused, prepare
-
-- Switch to VS Code Tab 3: `builder-crud.spec.ts` at the test name.
-
-### Resume and do
-
-1. Show the builder/CRUD test name and briefly scroll through its major actions.
-2. Switch to VS Code Tab 4: `generated-activity-reporting.spec.ts`.
-3. Show its test name and the health, learner interaction, download, and reporting assertions.
-4. Switch to Browser Tab 6: Playwright report.
-5. Keep the green overall result and both passed test names visible.
-6. Do not click Run or rerun the suite.
-
-### Say
-
-> Playwright covers both required perspectives with an isolated migrated database. The teacher workflow creates, reloads, updates, and deletes a Word Search while checking ordered multi-character phonemes. The learner workflow checks health and invalid input, solves a Wordle preview, downloads its HTML, and confirms dashboard reporting. Both Edge tests passed in 6.3 seconds, and the disposable database protects the demonstration data.
-
-### Pause when
-
-Pause with the green Playwright result and both test names visible.
-
-### Check before continuing
-
-- Both source specifications shown.
-- Both test purposes explained.
-- Passing HTML report shown.
-- Isolation from demonstration data explained.
-
----
-
-## Chunk 7 — JMeter staged load testing
-
-Target: **4:35–5:30**  
-Rubric evidence: clearly demonstrated JMeter results and accurate interpretation of behaviour under load.
-
-### While paused, prepare
-
-- Switch to VS Code Tab 5: JMeter results Markdown Preview.
-- Position the document at the five-row `Stage results` table.
-
-### Resume and do
-
-1. Move down the 1, 10, 100, 1,000, and 10,000 rows.
-2. Point to total samples, p95, throughput, and errors.
-3. Emphasise the 10,000 row.
-4. Switch to Browser Tab 7: saved JMeter HTML dashboard.
-5. Show the summary/statistics area without exploring every graph.
-
-### Say
-
-> JMeter exercised health, dashboard-summary, and activity reads at one, ten, one hundred, one thousand, and ten thousand requests per endpoint. All 33,333 samples completed with zero errors. The final stage reached about 1,493 requests per second, a 2.19 millisecond mean, and 3 millisecond aggregate p95. The failure threshold was not reached. These are comparative local read-only results, not a production-capacity claim.
-
-### Pause when
-
-Pause with the highest-stage JMeter summary visible.
-
-### Check before continuing
-
-- All five stages shown.
-- 33,333 samples and zero errors stated.
-- Throughput and p95 interpreted.
-- Local/read-only limitation stated.
-
----
-
-## Chunk 8 — Lighthouse accessibility improvement
-
-Target: **5:30–6:15**  
-Rubric evidence: Lighthouse results clearly demonstrated and used to explain a real design improvement.
-
-### While paused, prepare
-
-- Switch to Browser Tab 8: dashboard baseline Lighthouse report.
-- Keep the accessibility score of 96 visible.
-
-### Resume and do
-
-1. Point to the baseline score of 96 and the failed colour-contrast audit.
-2. Switch to VS Code Tab 6: Lighthouse results Markdown Preview.
-3. Point to the original failing ratios and the corrected light/dark ratios above 6:1.
-4. Switch to Browser Tab 9: final Lighthouse report.
-5. Point to the final score of 100 and the absence of scored failures.
-
-### Say
-
-> Lighthouse initially scored the dashboard 96 and found two labels below the required 4.5-to-1 text contrast ratio. I introduced theme-aware text colours above 6 to 1 in both themes. The final dashboard scored 100 with all 25 weighted audits passing, and Wordle also scored 100. Automated results support this change but do not replace manual keyboard, focus, landmark, and assistive-technology checks.
-
-### Pause when
-
-Pause with the final Lighthouse score of 100 visible.
-
-### Check before continuing
-
-- Baseline 96 shown.
-- Specific contrast problem explained.
-- Measured design response shown.
-- Final 100 shown.
-- Automated-audit limitation acknowledged.
-
----
-
-## Chunk 9 — Docker reliability and persistence
-
-Target: **6:15–6:45**  
-Rubric evidence: required deployment environment, migrations, persistence, health, CRUD, exports, and final integration reliability.
-
-### While paused, prepare
-
-- Switch to the visible PowerShell window running the foreground Docker container.
-- Make sure startup/migration output is visible.
-
-### Resume and do
-
-1. Show the Docker terminal and point to migration/startup output.
-2. Switch to VS Code Tab 7: Phase 10 verification.
-3. Position at `Docker verification` and point to routes, health, CRUD, exports, and restart persistence.
-4. Briefly move to `Post-feedback database healthcheck verification` and point to the 200/503 result.
-5. Switch briefly to Browser Tab 4 for the live health JSON.
-6. Return to Browser Tab 2 for the populated Docker dashboard.
-
-### Say
-
-> The application is running in Docker with SQLite in the named `phonotrail-data` volume. Clean-volume verification applied both migrations, returned HTTP 200 for six routes and the database-backed healthcheck, passed CRUD and both exports, and retained data after restart. An unavailable-database check returned HTTP 503, demonstrating meaningful failure signalling.
-
-### Pause when
-
-Pause with the live Docker dashboard visible.
-
-### Check before continuing
-
-- Docker terminal shown.
-- Named-volume persistence explained.
-- Migration, CRUD, exports, and restart evidence mentioned.
-- Genuine 200/503 health behaviour mentioned.
-
----
-
-## Chunk 10 — GitHub, code quality, limitations, and conclusion
-
-Target: **6:45–7:20**  
-Rubric evidence: professional GitHub homepage, focused history, maintainable structure, critical evaluation, and conclusion.
-
-### While paused, prepare
-
-- Switch to Browser Tab 10: GitHub repository homepage.
-- Position the README near the architecture/data-flow and evidence sections.
-
-### Resume and do
-
-1. Scroll briefly through the README sections for data flow, setup, Docker, testing evidence, limitations, references, and AI acknowledgement.
-2. Switch to Browser Tab 11: commit history.
-3. Slowly show the focused commits for metric design, persistence, dashboard reporting, resilience, Playwright, JMeter, Lighthouse, Docker verification, documentation, and the final database-backed healthcheck.
-4. Keep commit `9237a02` visible if possible.
-5. Finish on the commit history or switch to Browser Tab 2 for the dashboard closing shot.
-
-### Say
-
-> The repository documents the architecture, setup, evidence, references, AI acknowledgement, and limitations. Its focused commits separate persistence, reporting, resilience, Playwright, JMeter, Lighthouse, Docker verification, documentation, and the feedback-driven healthcheck. Words currently belong to individual activities rather than reusable versioned lists; that is documented as future schema work. PhonoTrail Studio preserves its classroom builders while adding evidence that the system is observable, tested, accessible, and understood under load.
-
-### Stop recording when
-
-Stop immediately after “understood under load.” Do not add an improvised second conclusion.
-
-### Final chunk check
-
-- GitHub README shown.
-- Focused commit history shown.
-- Latest healthcheck commit shown.
-- Limitation critically evaluated.
-- Clear conclusion delivered.
-
----
-
-# Immediately after recording
-
-Do not upload immediately. Review the complete rendered video first.
-
-- [ ] Finished length is between 3 and 8 minutes.
-- [ ] Face remains visible throughout.
-- [ ] Student ID is readable at the beginning.
-- [ ] Voice is clear and continuous across resumed chunks.
-- [ ] Pause/resume transitions do not remove or repeat important sentences.
-- [ ] Dashboard values are readable.
-- [ ] Wordle export and resulting dashboard update are visible.
-- [ ] Database model and genuine healthcheck are shown.
-- [ ] Alert is shown and explained.
-- [ ] Both Playwright tests and the green result are visible.
-- [ ] All five JMeter stages and final result are visible.
-- [ ] Lighthouse 96, the contrast response, and final 100 are visible.
-- [ ] Docker terminal and verification evidence are visible.
-- [ ] GitHub homepage and commits are visible.
-- [ ] No passwords, tokens, private messages, or unrelated personal information appear.
-
-# Submission checks after the video is accepted
-
-- [ ] Keep the original recording until the LMS submission is confirmed.
-- [ ] Confirm `main` and `origin/main` match.
-- [ ] Upload `submission/PhonoTrail-Studio-Assessment3-source.zip`.
-- [ ] Check the LMS accepts the approximately 101 MB ZIP.
-- [ ] Upload the final 3–8 minute video using the required LMS method.
-- [ ] Provide the GitHub repository link.
-- [ ] Complete the official LMS AI acknowledgement; the repository acknowledgement does not replace it.
-- [ ] Submit any required Word/PDF statement and confirm Turnitin produces a similarity score.
-- [ ] Re-download or preview every submitted item before final submission.
-
-# Emergency fallbacks during recording
-
-- If a dashboard value differs, state the visible value; do not restart merely because live telemetry changed it.
-- If the export succeeds but the dashboard has not updated, wait for the refresh to finish. Refresh once more only if necessary; do not export twice.
-- If a raw HTML report is difficult to read, show its Markdown results summary instead.
-- If a browser tab is missing, pause, reopen it, place it in the expected position, and resume.
-- If you lose your place, pause. Find the next **Say** block and resume from the start of that chunk.
-- If Docker stops, pause, restart the documented foreground command, confirm health and dashboard, then resume the affected chunk.
-- If the recording exceeds 8 minutes, it must be redone or carefully shortened before submission.
+- **No Recent generation failures warning:** complete setup step 2. An all-clear message means no warning rule is active; it does not mean the dashboard is broken.
+- **The warning includes real failures:** say “I've included labelled simulated failures to demonstrate it safely” as written, not “all failures are simulated.” If you cannot distinguish the prepared example from an unexpected fault, investigate before recording.
+- **An export does not open a new tab:** pause. Open the latest downloaded HTML through browser Downloads (`Ctrl+J`). Do not click Export repeatedly.
+- **Success count has not increased:** pause and refresh again after a few seconds. Confirm both exports actually completed. If reporting still has not updated, stop the take and investigate rather than claiming it worked.
+- **The live export row has disappeared:** Recent operational events shows only ten rows. Repeated navigation creates more events. If needed, redo chunks 2–3 together, taking a fresh baseline first; do not claim an unrelated row is the export.
+- **A saved test report is missing or failing:** do not read out a passing result. Prepare/verify the evidence off camera first. Test reproduction commands are in `app/e2e/README.md`, `app/load-tests/README.md` and `app/lighthouse/README.md`.
+- **You stumble on a sentence:** pause, put the screen back at that cue, and resume from the start of that sentence. You do not need to restart the whole video.
+
+## The ideas in ordinary English
+
+| Term | What you mean |
+|---|---|
+| Persistence | Saved data is still there when you retrieve it again; Docker keeps SQLite in a named volume. |
+| Phoneme | A speech sound represented by a token, which can contain more than one character. |
+| Reporting event | A small database record of something happening, such as an export succeeding. |
+| Observability | Being able to tell what the app is doing and whether something is wrong. |
+| Simulated data | Deliberately prepared, labelled examples—not genuine classroom traffic. |
+| Health check | A server route that checks the database can be read and returns a status. |
+| Playwright | Automated browser actions with checks that the expected result occurred. |
+| JMeter | Repeated HTTP requests used to measure response times and errors. |
+| p95 | About 95% of measured responses took this long or less. |
+| Lighthouse | Automated checks that can identify accessibility problems; not a complete accessibility guarantee. |
+| Contrast | How clearly text stands out from its background. |
+
+## What is verified, and what still needs a live check
+
+Checked on 4 October 2026: the official brief and rubric, current source/labels, saved report paths, Playwright embedded results (**2 passed, 0 failed; about 6.3 seconds**), JMeter summary, and Lighthouse before/after evidence.
+
+The application was **not reachable at localhost:3000 during this rewrite**. This document does not claim the Docker demo has been rehearsed or its current data verified. Complete the setup checks when the container is running.
+
+Playwright evidence is dated **30 September**. JMeter and the baseline/final Lighthouse evidence are dated **28 September**. These are saved development results, not tests rerun while recording. In particular, the JMeter run predates the feedback-driven database healthcheck change; do not call it a fresh benchmark of the updated route. The load test exercised supporting read endpoints, not full browser generation or write-heavy traffic.
+
+## Rubric coverage — for checking, not reading aloud
+
+| Official criterion | Weight | Evidence in this walkthrough |
+|---|---:|---|
+| Data-driven dashboard, reporting views and activity generation | 6% | Chunk 2 shows both generated outputs; chunk 3 shows cards, comparisons and the dated report. |
+| Database persistence and stored activity data | 6% | Chunk 2 retrieves saved words/settings; chunk 4 explains Activity/Word/Phoneme and UsageEvent; chunk 5 shows automated persistence checks. |
+| Observability and operational statistics | 5% | Chunk 3 covers counts, page time, most-used output, success/failure, live events, simulated records and the warning; chunk 4 shows database health. |
+| Testing and accessibility evidence | 4% | Chunks 5–7 show both Playwright workflows, five JMeter stages with limitations, and Lighthouse findings plus the design change. |
+| Code quality and GitHub | 4% | Chunk 4 explains separate data responsibilities; chunk 8 shows the homepage, documented limitation and commits. |
+| Mandatory video content | — | Face and voice throughout; ID in chunk 1; working Docker application; 3–8 minute final duration. |
+
+This is a coverage check, not a guarantee of marks. The implementation's existing limitations remain documented.
+
+## After recording
+
+Play back the whole video once. Check readable evidence, clear sound, face/ID, both exported activities, all three testing tools, GitHub homepage/commits, and a total duration of **3–8 minutes**.
+
+Use [Video and Submission](Assessment3_Video_and_Submission.md) only for packaging and upload checks. It no longer contains a competing script.

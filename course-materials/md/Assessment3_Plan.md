@@ -1575,6 +1575,16 @@ Verification:
 
 ---
 
+### Recording walkthrough overhaul — 4 October 2026
+
+At the student's request, replaced the difficult ten-section recording script with eight demonstration-led chunks. The recording guide now pairs each small screen action with its matching spoken cue, explains the technical meaning in plain English, and separates setup/troubleshooting from narration. Both generated activity types are shown. The spoken-only TXT was rewritten to match all 27 cues exactly; the earlier printed script is superseded.
+
+Removed the competing timed script and stale fixed dashboard values from `Assessment3_Video_and_Submission.md`; it is now a submission/evidence checklist. Earlier scripts and measured starting values elsewhere in this plan are historical, not current recording instructions.
+
+Checks performed: reread the official Assessment 3 PDF and rubric DOCX; checked UI labels, exports, schema, health route and both Playwright scenarios; verified saved report files exist; inspected the Playwright HTML's embedded results (2 passed, 0 failed, approximately 6.3 seconds); cross-checked JMeter and Lighthouse result summaries. The new narration explicitly limits local read-only load results and does not claim a full downloaded-game Playwright playthrough.
+
+Readiness remains conditional: localhost:3000 was unreachable during this rewrite, so no fresh Docker rehearsal or live dashboard state was verified. The guide requires checking Docker/health, preparing labelled simulated records if needed, rehearsing both outputs and taking a fresh baseline before recording. No application code, database records, Docker containers or test results were changed; no tests were rerun. Final recording, source ZIP regeneration, commit/push and LMS submission remain manual actions.
+
 ## Definition of Done
 
 ### Baseline protection
@@ -1784,7 +1794,7 @@ The video should show real results from the final verified build. Placeholder cl
 
 ## Evolving video script
 
-Status: **Recording draft 2.0 - measured Phases 1-12 script prepared; manual recording and submission pending.**
+Status: **Historical draft — superseded on 4 October 2026. Do not use the narration below for recording. Use `Assessment3_Final_Recording_Script.md` and its matching spoken-only TXT.**
 
 Target duration: approximately 7 minutes 15 seconds. This leaves a 45-second safety margin below the mandatory 8-minute maximum.
 
